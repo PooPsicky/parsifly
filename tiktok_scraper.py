@@ -37,8 +37,10 @@ async def scrape_tiktok_profile(username, num_videos=10):
     async with async_playwright() as p:
         browser = await p.chromium.launch(
             executable_path="/home/adminuser/.cache/ms-playwright/chrome-linux64/chrome",
-            headless=True
+            headless=True,
+            args=["--no-sandbox", "--disable-setuid-sandbox"]
         )
+
         page = await browser.new_page()
 
         # Open TikTok profile
