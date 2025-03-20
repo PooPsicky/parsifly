@@ -1,108 +1,96 @@
 import asyncio
-import sys
-import json
 import os
+import openai
+import pandas as pd
 from playwright.async_api import async_playwright
-from openai import OpenAI
-from dotenv import load_dotenv
 
-load_dotenv()
+# Load OpenAI API Key from environment variables or Streamlit Cloud Secrets
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-openai_client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
 
 async def generate_summary(caption):
-    prompt = f"""
-    You're an expert social media analyst.
-    Given the following TikTok caption, write a concise and engaging summary highlighting:
-    - Main topic or product being promoted
-    - Emotional tone (exciting, funny, informative, etc.)
-    - What might attract viewers to watch this video
+    """Generate a short summary of a TikTok video using GPT-3.5 Turbo."""
 
-    Caption:
-    "{caption}"
+    if not caption or caption == "No Caption":
+        return "No meaningful caption available."
 
-    Engaging Summary:
-    """
-    response = openai_client.chat.completions.create(
-        model="gpt-3.5-turbo",
-        messages=[{"role": "user", "content": prompt}],
-        max_tokens=60,
-        temperature=0.7  # Clearly improves creativity
-    )
-    return response.choices[0].message.content.strip()
+    try:
+        openai_client = openai.OpenAI(api_key=OPENAI_API_KEY)
+        response = openai_client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "You are a TikTok content analyst. Summarize this TikTok video briefly."},
+                {"role": "user", "content": caption}
+            ],
+            max_tokens=50,
+            temperature=0.6
+        )
+        return response.choices[0].message.content.strip()
+    except Exception as e:
+        print(f"Error generating summary: {e}")
+        return "Summary unavailable."
 
 
-async def scrape_tiktok_profile(profile_url, num_videos):
+async def scrape_tiktok_profile(username, num_videos=10):
+    """Scrape a TikTok profile's latest videos using Playwright in headless mode."""
+
     async with async_playwright() as p:
         browser = await p.chromium.launch(
             executable_path="/home/adminuser/.cache/ms-playwright/chrome-linux64/chrome",
             headless=True
         )
         page = await browser.new_page()
-        await page.goto(profile_url)
 
-        videos_loaded = 0
-        while videos_loaded < num_videos:
-            await page.mouse.wheel(0, 1500)
-            await asyncio.sleep(2)
-            videos_loaded = len(await page.query_selector_all('div[data-e2e="user-post-item"]'))
+        # Open TikTok profile
+        url = f"https://www.tiktok.com/@{username}"
+        await page.goto(url)
+        await page.wait_for_timeout(5000)  # Wait for the page to load
 
-        video_elements = (await page.query_selector_all('div[data-e2e="user-post-item"]'))[:num_videos]
+        videos = []
+        video_elements = await page.query_selector_all('div[data-e2e="user-post-item"]')
 
-        video_data = []
-        for video in video_elements:
-            video_link_el = await video.query_selector('a')
-            caption_el = await video.query_selector('img')
-            views_el = await video.query_selector('strong[data-e2e="video-views"]')
-
-            video_link = await video_link_el.get_attribute('href')
-            caption = await caption_el.get_attribute('alt')
-            views = await views_el.inner_text() if views_el else "N/A"
-
-            video_full_link = video_link if video_link.startswith('http') else f"https://www.tiktok.com{video_link}"
-
-            detail_page = await browser.new_page()
-            await detail_page.goto(video_full_link)
-            await detail_page.wait_for_selector('strong[data-e2e="like-count"]', timeout=10000)
-
+        for video in video_elements[:num_videos]:
             try:
-                likes_el = await detail_page.query_selector('strong[data-e2e="like-count"]')
-                likes = await likes_el.inner_text() if likes_el else 'N/A'
-            except:
-                likes = 'N/A'
+                video_link = await video.query_selector("a")
+                video_url = await video_link.get_attribute("href") if video_link else "N/A"
 
-            try:
-                comments_el = await detail_page.query_selector('strong[data-e2e="comment-count"]')
-                comments = await comments_el.inner_text() if comments_el else 'N/A'
-            except:
-                comments = 'N/A'
+                caption_element = await video.query_selector("img")
+                caption = await caption_element.get_attribute("alt") if caption_element else "No Caption"
 
-            try:
-                shares_el = await detail_page.query_selector('strong[data-e2e="share-count"]')
-                shares = await shares_el.inner_text() if shares_el else 'N/A'
-            except:
-                shares = 'N/A'
+                views_element = await video.query_selector('strong[data-e2e="video-views"]')
+                views = await views_element.inner_text() if views_element else "0"
 
-            await detail_page.close()
+                likes_element = await video.query_selector('span[data-e2e="like-count"]')
+                likes = await likes_element.inner_text() if likes_element else "0"
 
-            summary = await generate_summary(caption)
+                comments_element = await video.query_selector('span[data-e2e="comment-count"]')
+                comments = await comments_element.inner_text() if comments_element else "0"
 
-            video_data.append({
-                "video_link": video_full_link,
-                "caption": caption,
-                "content_summary": summary,
-                "views": views,
-                "likes": likes,
-                "comments": comments,
-                "shares": shares,
-            })
+                shares_element = await video.query_selector('span[data-e2e="share-count"]')
+                shares = await shares_element.inner_text() if shares_element else "0"
+
+                summary = await generate_summary(caption)  # Generate summary using GPT-3.5 Turbo
+
+                videos.append({
+                    "Video Link": video_url,
+                    "Caption": caption,
+                    "Views": views,
+                    "Likes": likes,
+                    "Comments": comments,
+                    "Shares": shares,
+                    "Summary": summary
+                })
+            except Exception as e:
+                print(f"Error scraping video: {e}")
 
         await browser.close()
 
-        with open("tiktok_results.json", "w", encoding="utf-8") as f:
-            json.dump(video_data, f, ensure_ascii=False, indent=4)
+        return pd.DataFrame(videos)
 
+
+# Run scraper if executed directly
 if __name__ == "__main__":
-    profile_url = sys.argv[1]
-    num_videos_to_scrape = int(sys.argv[2])
-    asyncio.run(scrape_tiktok_profile(profile_url, num_videos_to_scrape))
+    username = "garyseconomics"  # Example username
+    num_videos = 10
+    df = asyncio.run(scrape_tiktok_profile(username, num_videos))
+    print(df)
