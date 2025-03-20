@@ -34,7 +34,10 @@ async def generate_summary(caption):
 
 async def scrape_tiktok_profile(profile_url, num_videos):
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await p.chromium.launch(
+            executable_path="/home/adminuser/.cache/ms-playwright/chrome-linux64/chrome",
+            headless=True
+        )
         page = await browser.new_page()
         await page.goto(profile_url)
 
