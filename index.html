@@ -1,0 +1,1066 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parsifly - Social Media Analytics Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/apify-client@2.7.1/dist/apify-client.min.js"></script>
+    <!-- Include the API handler script -->
+    <script src="api.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            light: '#4f46e5',
+                            dark: '#6366f1'
+                        },
+                        secondary: {
+                            light: '#f43f5e',
+                            dark: '#fb7185'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .theme-transition * {
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        }
+        
+        /* Chart container styles removed - no longer needed */
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        
+        .dark ::-webkit-scrollbar-thumb {
+            background: #4b5563;
+        }
+        .dark ::-webkit-scrollbar-thumb:hover {
+            background: #6b7280;
+        }
+    </style>
+</head>
+<body class="theme-transition bg-gray-50 text-gray-800 dark:bg-gray-900 dark:text-gray-100 min-h-screen">
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <div class="hidden md:flex md:flex-shrink-0">
+            <div class="flex flex-col w-64 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+                <div class="flex items-center h-16 px-4 border-b border-gray-200 dark:border-gray-700">
+                    <div class="flex items-center">
+                        <i class="fas fa-chart-line text-primary-light dark:text-primary-dark text-2xl mr-2"></i>
+                        <span class="text-xl font-semibold">AnalyticsPro</span>
+                    </div>
+                </div>
+                <div class="flex flex-col flex-grow overflow-y-auto">
+                    <nav class="flex-1 px-2 py-4 space-y-1">
+                        <a href="#" data-section="dashboard" class="flex items-center px-4 py-2 text-sm font-medium rounded-md bg-primary-light/10 text-primary-light dark:bg-primary-dark/20 dark:text-primary-dark nav-link">
+                            <i class="fas fa-tachometer-alt mr-3"></i>
+                            Dashboard
+                        </a>
+                        <a href="#" data-section="profiles" class="flex items-center px-4 py-2 text-sm font-medium rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 nav-link">
+                            <i class="fas fa-user-friends mr-3"></i>
+                            Profiles
+                        </a>
+                        <a href="#" data-section="analytics" class="flex items-center px-4 py-2 text-sm font-medium rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 nav-link">
+                            <i class="fas fa-chart-pie mr-3"></i>
+                            Analytics
+                        </a>
+                        <a href="#" data-section="reports" class="flex items-center px-4 py-2 text-sm font-medium rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 nav-link">
+                            <i class="fas fa-file-alt mr-3"></i>
+                            Reports
+                        </a>
+                        <a href="#" data-section="settings" class="flex items-center px-4 py-2 text-sm font-medium rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 nav-link">
+                            <i class="fas fa-cog mr-3"></i>
+                            Settings
+                        </a>
+                    </nav>
+                </div>
+                <div class="p-4 border-t border-gray-200 dark:border-gray-700">
+                    <div class="flex items-center">
+                        <img class="w-8 h-8 rounded-full" src="https://randomuser.me/api/portraits/women/44.jpg" alt="User avatar">
+                        <div class="ml-3">
+                            <p class="text-sm font-medium">Sarah Johnson</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">Admin</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main content -->
+        <div class="flex flex-col flex-1 overflow-hidden">
+            <!-- Top navigation -->
+            <div class="flex items-center justify-between h-16 px-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+                <div class="flex items-center md:hidden">
+                    <button id="mobile-sidebar-toggle" class="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                </div>
+                
+                <!-- Corrected search bar -->
+                <div class="flex-1 max-w-xl mx-4">
+                    <form id="search-form" class="relative">
+                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                            <i class="fas fa-search text-gray-400"></i>
+                        </div>
+                        <input
+                            id="profile-search"
+                            type="text"
+                            class="block w-full pl-10 pr-20 py-2 border border-gray-300 rounded-md bg-white dark:bg-gray-700 dark:border-gray-600 focus:ring-primary-light dark:focus:ring-primary-dark focus:border-primary-light dark:focus:border-primary-dark sm:text-sm"
+                            placeholder="Enter TikTok, Instagram, or YouTube profile URL or username..."
+                        />
+                        <div class="absolute inset-y-0 right-12 flex items-center">
+                            <select
+                                id="platform-select"
+                                class="h-full py-1 px-4 border-none bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-200 focus:outline-none rounded-md"
+                            >
+                                <option value="TikTok">TikTok</option>
+                                <option value="Instagram">Instagram</option>
+                                <option value="YouTube">YouTube</option>
+                            </select>
+                        </div>
+                        <button
+                            type="submit"
+                            class="absolute inset-y-0 right-0 flex items-center px-3 text-primary-light dark:text-primary-dark"
+                        >
+                            <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </form>
+                </div>
+
+                <div class="flex items-center space-x-4">
+                    <button class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 md:hidden">
+                        <i class="fas fa-search"></i>
+                    </button>
+                    <button id="notifications-btn" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 relative">
+                        <i class="fas fa-bell"></i>
+                        <span class="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
+                    </button>
+                    <!-- Theme toggle moved here -->
+                    <button id="theme-toggle" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
+                        <i class="fas fa-moon dark:hidden"></i>
+                        <i class="fas fa-sun hidden dark:block"></i>
+                    </button>
+                    <div class="relative hidden md:block">
+                        <button id="user-menu-button" class="flex items-center space-x-2 p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700">
+                            <img class="w-8 h-8 rounded-full" src="https://randomuser.me/api/portraits/women/44.jpg" alt="User avatar">
+                            <i class="fas fa-chevron-down text-xs"></i>
+                        </button>
+                        <!-- User dropdown menu -->
+                        <div id="user-dropdown" class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg py-1 z-10 hidden">
+                            <a href="#" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                <i class="fas fa-user mr-2"></i> Profile settings
+                            </a>
+                            <a href="#" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                <i class="fas fa-cog mr-2"></i> Preferences
+                            </a>
+                            <a href="#" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                <i class="fas fa-question-circle mr-2"></i> Help & Support
+                            </a>
+                            <div class="border-t border-gray-100 dark:border-gray-700 my-1"></div>
+                            <a href="#" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700" id="logout-button">
+                                <i class="fas fa-sign-out-alt mr-2"></i> Logout
+                            </a>
+                        </div>
+                    </div>
+                    <div class="relative md:hidden">
+                        <button id="mobile-menu-button" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
+                            <i class="fas fa-user"></i>
+                        </button>
+                        <!-- Mobile user dropdown -->
+                        <div id="mobile-user-dropdown" class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg py-1 z-10 hidden">
+                            <a href="#" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                <i class="fas fa-user mr-2"></i> Profile settings
+                            </a>
+                            <a href="#" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                <i class="fas fa-cog mr-2"></i> Preferences
+                            </a>
+                            <a href="#" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                <i class="fas fa-question-circle mr-2"></i> Help & Support
+                            </a>
+                            <div class="border-t border-gray-100 dark:border-gray-700 my-1"></div>
+                            <a href="#" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700" id="logout-button">
+                                <i class="fas fa-sign-out-alt mr-2"></i> Logout
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard content -->
+            <div class="flex-1 overflow-auto p-4">
+                <div class="mb-6">
+                    <h1 class="text-2xl font-bold">Dashboard</h1>
+                    <p class="text-gray-500 dark:text-gray-400">Monitor your social media profiles and analyze performance</p>
+                </div>
+                <!-- Current profile section -->
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6 content-section" id="dashboard-section">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-xl font-semibold">Current Profile</h2>
+                        <div class="flex space-x-2">
+                            <button id="scrape-btn" class="px-4 py-2 bg-primary-light dark:bg-primary-dark text-white rounded-md hover:bg-primary-light/90 dark:hover:bg-primary-dark/90 flex items-center">
+                                <i class="fas fa-sync-alt mr-2"></i>
+                                Scrape Data
+                            </button>
+                            <button id="export-btn" class="px-4 py-2 border border-primary-light dark:border-primary-dark text-primary-light dark:text-primary-dark rounded-md hover:bg-primary-light/10 dark:hover:bg-primary-dark/10 flex items-center">
+                                <i class="fas fa-download mr-2"></i>
+                                Export Data
+                            </button>
+                        </div>
+                    </div>
+                    <div class="flex flex-col md:flex-row items-center md:items-start">
+                        <img src="https://randomuser.me/api/portraits/women/65.jpg" alt="Profile" class="w-24 h-24 rounded-full mb-4 md:mb-0 md:mr-6">
+                        <div class="flex-1">
+                            <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
+                                <div>
+                                    <h3 class="text-lg font-semibold">@socialqueen</h3>
+                                    <p class="text-gray-500 dark:text-gray-400">TikTok Influencer</p>
+                                </div>
+                                <div class="flex items-center mt-2 md:mt-0">
+                                    <span class="px-2 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 text-xs rounded-full">Active</span>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                                <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">Followers</p>
+                                    <p class="text-xl font-semibold">1.2M</p>
+                                    <p class="text-sm text-green-500 flex items-center">
+                                        <i class="fas fa-arrow-up mr-1"></i> 12.5%
+                                    </p>
+                                </div>
+                                <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">Likes</p>
+                                    <p class="text-xl font-semibold">8.7M</p>
+                                    <p class="text-sm text-green-500 flex items-center">
+                                        <i class="fas fa-arrow-up mr-1"></i> 5.3%
+                                    </p>
+                                </div>
+                                <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">Engagement</p>
+                                    <p class="text-xl font-semibold">9.8%</p>
+                                    <p class="text-sm text-red-500 flex items-center">
+                                        <i class="fas fa-arrow-down mr-1"></i> 1.2%
+                                    </p>
+                                </div>
+                                <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">Views</p>
+                                    <p class="text-xl font-semibold">24.5M</p>
+                                    <p class="text-sm text-green-500 flex items-center">
+                                        <i class="fas fa-arrow-up mr-1"></i> 18.7%
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between mb-2">
+                                <h4 class="font-medium">Analytics</h4>
+                                <div class="flex space-x-1">
+                                    <button id="time-filter-7d" class="px-3 py-1 text-xs bg-primary-light dark:bg-primary-dark text-white rounded-md">7d</button>
+                                    <button id="time-filter-30d" class="px-3 py-1 text-xs bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-md">30d</button>
+                                    <button id="time-filter-90d" class="px-3 py-1 text-xs bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-md">90d</button>
+                                </div>
+                            </div>
+                            <!-- AI Insights Section -->
+                            <div id="ai-insights" class="mt-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border-l-4 border-primary-light dark:border-primary-dark">
+                                <h4 class="font-medium text-lg flex items-center mb-3">
+                                    <i class="fas fa-robot mr-2 text-primary-light dark:text-primary-dark"></i>
+                                    AI Suggestions
+                                </h4>
+                                <div id="ai-summary" class="text-sm">
+                                    <div class="animate-pulse text-gray-400 dark:text-gray-500">
+                                        <p>Analyzing profile metrics...</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Content placeholder - Charts and recent posts removed -->
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 text-center content-section hidden" id="profiles-section">
+                    <i class="fas fa-chart-line text-gray-400 text-4xl mb-4"></i>
+                    <h3 class="font-semibold text-xl mb-2">Profiles Content Removed</h3>
+                    <p class="text-gray-500 dark:text-gray-400">Chart blocks and recent posts table have been removed as requested.</p>
+                </div>
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 text-center content-section hidden" id="analytics-section">
+                    <i class="fas fa-chart-line text-gray-400 text-4xl mb-4"></i>
+                    <h3 class="font-semibold text-xl mb-2">Analytics Content Removed</h3>
+                    <p class="text-gray-500 dark:text-gray-400">Chart blocks and recent posts table have been removed as requested.</p>
+                </div>
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 text-center content-section hidden" id="reports-section">
+                    <i class="fas fa-chart-line text-gray-400 text-4xl mb-4"></i>
+                    <h3 class="font-semibold text-xl mb-2">Reports Content Removed</h3>
+                    <p class="text-gray-500 dark:text-gray-400">Chart blocks and recent posts table have been removed as requested.</p>
+                </div>
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 text-center content-section hidden" id="settings-section">
+                    <i class="fas fa-chart-line text-gray-400 text-4xl mb-4"></i>
+                    <h3 class="font-semibold text-xl mb-2">Settings Content Removed</h3>
+                    <p class="text-gray-500 dark:text-gray-400">Chart blocks and recent posts table have been removed as requested.</p>
+                </div>
+                <!-- Performance Table Section -->
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6 content-section" id="performance-table-section">
+                    <h2 class="text-xl font-semibold mb-4">Performance Table</h2>
+                    <div class="overflow-x-auto">
+                        <table id="performance-table" class="min-w-full text-sm">
+                            <thead class="bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-200">
+                                <tr>
+                                    <th class="px-3 py-2 text-left">Account URL</th>
+                                    <th class="px-3 py-2 text-left">Post URL</th>
+                                    <th class="px-3 py-2 text-left">Timestamp</th>
+                                    <th class="px-3 py-2 text-left">Category</th>
+                                    <th class="px-3 py-2 text-left">Theme</th>
+                                    <th class="px-3 py-2 text-left">Hook</th>
+                                    <th class="px-3 py-2 text-left">Caption</th>
+                                    <th class="px-3 py-2 text-right">Caption Length</th>
+                                    <th class="px-3 py-2 text-right">Followers</th>
+                                    <th class="px-3 py-2 text-right">Views</th>
+                                    <th class="px-3 py-2 text-right">Likes</th>
+                                    <th class="px-3 py-2 text-right">Comments</th>
+                                    <th class="px-3 py-2 text-right">ER (Followers)</th>
+                                    <th class="px-3 py-2 text-right">ER (Likes + Comments)</th>
+                                    <th class="px-3 py-2 text-right">Shares</th>
+                                    <th class="px-3 py-2 text-right">ER (Shares)</th>
+                                    <th class="px-3 py-2 text-right">Duration (s)</th>
+                                    <th class="px-3 py-2 text-right">Virality Score</th>
+                                    <th class="px-3 py-2 text-left">ER Rating</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                                <!-- Rows will be inserted dynamically here -->
+                                <tr><td colspan="19" class="text-center py-4 text-gray-500 dark:text-gray-400">Search for a profile to load performance data.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Toast notification -->
+    <div id="toast" class="fixed bottom-4 right-4 hidden">
+        <div class="bg-gray-800 text-white px-4 py-3 rounded-md shadow-lg flex items-center">
+            <i id="toast-icon" class="fas fa-info-circle mr-2"></i>
+            <span id="toast-message">This is a toast message</span>
+        </div>
+    </div>
+    <script>
+        // Theme toggle functionality
+        const themeToggle = document.getElementById('theme-toggle');
+        const html = document.documentElement;
+        
+        // Check for saved user preference or use system preference
+        const savedTheme = localStorage.getItem('theme') || 
+                          (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        
+        // Apply the saved theme
+        html.classList.add(savedTheme);
+        
+        themeToggle.addEventListener('click', () => {
+            html.classList.toggle('dark');
+            const isDark = html.classList.contains('dark');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        });
+        
+        // Toast notification system
+        const toast = document.getElementById('toast');
+        const toastIcon = document.getElementById('toast-icon');
+        const toastMessage = document.getElementById('toast-message');
+        
+        function showToast(message, type = 'info', duration = 3000) {
+            // Set icon based on type
+            switch(type) {
+                case 'success':
+                    toastIcon.className = 'fas fa-check-circle mr-2';
+                    break;
+                case 'error':
+                    toastIcon.className = 'fas fa-exclamation-circle mr-2';
+                    break;
+                case 'warning':
+                    toastIcon.className = 'fas fa-exclamation-triangle mr-2';
+                    break;
+                case 'loading':
+                    toastIcon.className = 'fas fa-spinner fa-spin mr-2';
+                    break;
+                default:
+                    toastIcon.className = 'fas fa-info-circle mr-2';
+            }
+            
+            // Set message and show toast
+            toastMessage.textContent = message;
+            toast.classList.remove('hidden');
+            
+            // Auto hide after duration (if not loading)
+            if (type !== 'loading') {
+                setTimeout(() => {
+                    toast.classList.add('hidden');
+                }, duration);
+            }
+        }
+        
+        function hideToast() {
+            toast.classList.add('hidden');
+        }
+        
+        // User dropdown toggle
+        const userMenuButton = document.getElementById('user-menu-button');
+        const userDropdown = document.getElementById('user-dropdown');
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileUserDropdown = document.getElementById('mobile-user-dropdown');
+        
+        userMenuButton.addEventListener('click', () => {
+            userDropdown.classList.toggle('hidden');
+        });
+        
+        mobileMenuButton.addEventListener('click', () => {
+            mobileUserDropdown.classList.toggle('hidden');
+        });
+        
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', (event) => {
+            if (!userMenuButton.contains(event.target) && !userDropdown.contains(event.target)) {
+                userDropdown.classList.add('hidden');
+            }
+            if (!mobileMenuButton.contains(event.target) && !mobileUserDropdown.contains(event.target)) {
+                mobileUserDropdown.classList.add('hidden');
+            }
+        });
+        
+        // Mobile sidebar toggle
+        const mobileSidebarToggle = document.getElementById('mobile-sidebar-toggle');
+        const sidebar = document.querySelector('.md\\:flex-shrink-0');
+        
+        mobileSidebarToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('hidden');
+            sidebar.classList.toggle('fixed');
+            sidebar.classList.toggle('z-50');
+            sidebar.classList.toggle('inset-y-0');
+            sidebar.classList.toggle('left-0');
+        });
+        
+        // Search form functionality
+        const searchForm = document.getElementById('search-form');
+        const profileSearchInput = document.getElementById('profile-search');
+        
+        searchForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const searchValue = profileSearchInput.value.trim();
+            if (!searchValue) return;
+            
+            // Detect if it's a URL
+            const isUrl = /^(https?:\/\/)?(www\.)?(tiktok\.com|instagram\.com|youtube\.com)/.test(searchValue);
+            
+            // Determine platform - either from URL or from dropdown selection
+            let platform = '';
+            if (isUrl) {
+                // Auto-detect from URL
+                if (searchValue.includes('tiktok.com')) platform = 'TikTok';
+                else if (searchValue.includes('instagram.com')) platform = 'Instagram';
+                else if (searchValue.includes('youtube.com')) platform = 'YouTube';
+                else platform = document.getElementById('platform-select').value; // Fallback to selected
+            } else {
+                // Use the platform selected from dropdown
+                platform = document.getElementById('platform-select').value;
+            }
+            
+            // Extract username from URL or use as-is
+            let username = searchValue;
+            if (isUrl) {
+                // Simple URL parsing for demo
+                const urlParts = searchValue.split('/');
+                username = urlParts[urlParts.length - 1].split('?')[0] || urlParts[urlParts.length - 2];
+            } else {
+                // Remove @ prefix if present
+                username = username.replace(/^@/, '');
+            }
+            
+            // Show loading state
+            showToast(`Analyzing ${platform} profile: ${username}...`, 'loading');
+            
+            try {
+                // Get currently active time filter
+                const activeTimeRange = 
+                    timeFilter30d.classList.contains('bg-primary-light') ? '30d' :
+                    timeFilter90d.classList.contains('bg-primary-light') ? '90d' : '7d';
+                
+                // Use the API function to fetch profile data with time range
+                const profileData = await fetchProfileDataByTimeRange(platform, username, activeTimeRange);
+                
+                // Update the UI with fetched data
+                updateCurrentProfile(profileData);
+
+                // Load performance data after profile analysis
+                await loadPerformanceData(platform, username);
+                
+                // Success notification
+                showToast('Profile analysis complete!', 'success');
+                
+                // Clear the search input
+                profileSearchInput.value = '';
+            } catch (error) {
+                console.error('Error analyzing profile:', error);
+                showToast('Failed to analyze profile. Please try again.', 'error');
+            }
+        });
+        
+        // Update current profile section
+        function updateCurrentProfile(profileData) {
+            // Store current profile for time filter changes
+            currentProfileInfo = {
+                username: profileData.username.replace('@', ''),
+                platform: profileData.platform
+            };
+            
+            const profileImage = document.querySelector('.flex-col.md\\:flex-row img');
+            const profileName = document.querySelector('.flex-col.md\\:flex-row h3');
+            const profileType = document.querySelector('.flex-col.md\\:flex-row p.text-gray-500');
+            const profileStatus = document.querySelector('.flex-col.md\\:flex-row span.px-2.py-1');
+            
+            // Update profile header
+            profileImage.src = profileData.avatar;
+            profileName.textContent = profileData.username.startsWith('@') ? profileData.username : '@' + profileData.username;
+            profileType.textContent = profileData.platform + ' Influencer';
+            
+            // Update status
+            profileStatus.textContent = profileData.status;
+            if (profileData.status === 'Private') {
+                profileStatus.classList.remove('bg-green-100', 'dark:bg-green-900', 'text-green-800', 'dark:text-green-200');
+                profileStatus.classList.add('bg-yellow-100', 'dark:bg-yellow-900', 'text-yellow-800', 'dark:text-yellow-200');
+            } else {
+                profileStatus.classList.remove('bg-yellow-100', 'dark:bg-yellow-900', 'text-yellow-800', 'dark:text-yellow-200');
+                profileStatus.classList.add('bg-green-100', 'dark:bg-green-900', 'text-green-800', 'dark:text-green-200');
+            }
+            
+            // Update stats
+            const statCards = document.querySelectorAll('.grid.grid-cols-2.md\\:grid-cols-4 > div');
+            
+            // Followers card - using formatNumber from our API module
+            statCards[0].querySelector('p.text-xl').textContent = formatNumber(profileData.followers);
+            const followersGrowthEl = statCards[0].querySelector('p:last-child');
+            updateGrowthElement(followersGrowthEl, profileData.followersGrowth);
+            
+            // Likes card
+            statCards[1].querySelector('p.text-xl').textContent = formatNumber(profileData.likes);
+            const likesGrowthEl = statCards[1].querySelector('p:last-child');
+            updateGrowthElement(likesGrowthEl, profileData.likesGrowth);
+            
+            // Engagement card
+            statCards[2].querySelector('p.text-xl').textContent = profileData.engagement + '%';
+            const engagementGrowthEl = statCards[2].querySelector('p:last-child');
+            updateGrowthElement(engagementGrowthEl, profileData.engagementGrowth);
+            
+            // Views card
+            statCards[3].querySelector('p.text-xl').textContent = formatNumber(profileData.views);
+            const viewsGrowthEl = statCards[3].querySelector('p:last-child');
+            updateGrowthElement(viewsGrowthEl, profileData.viewsGrowth);
+            
+            // Generate and display AI insights
+            const aiInsights = generateAISummary(profileData);
+            updateAIInsights(aiInsights);
+        }
+        
+        function updateGrowthElement(element, growthValue) {
+            const growth = parseFloat(growthValue);
+            const icon = element.querySelector('i');
+            
+            if (growth >= 0) {
+                element.className = 'text-sm text-green-500 flex items-center';
+                icon.className = 'fas fa-arrow-up mr-1';
+                element.textContent = ' ' + growth + '%';
+                element.prepend(icon);
+            } else {
+                element.className = 'text-sm text-red-500 flex items-center';
+                icon.className = 'fas fa-arrow-down mr-1';
+                element.textContent = ' ' + Math.abs(growth) + '%';
+                element.prepend(icon);
+            }
+        }
+        
+        function formatNumber(number) {
+            if (number >= 1000000) {
+                return (number / 1000000).toFixed(1) + 'M';
+            } else if (number >= 1000) {
+                return (number / 1000).toFixed(1) + 'K';
+            }
+            return number;
+        }
+        
+        // Scrape button functionality with error handling
+        const scrapeBtn = document.getElementById('scrape-btn');
+        
+        scrapeBtn.addEventListener('click', async () => {
+            // Show loading state
+            scrapeBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Scraping...';
+            scrapeBtn.disabled = true;
+            
+            // Show toast
+            showToast('Scraping in progress...', 'loading');
+            
+            try {
+                // Get current profile data to determine platform and username
+                const currentUsername = document.querySelector('.flex-col.md\\:flex-row h3').textContent.replace('@', '');
+                const currentPlatform = document.querySelector('.flex-col.md\\:flex-row p.text-gray-500').textContent.replace(' Influencer', '');
+                
+                // Get currently active time filter
+                const activeTimeRange = 
+                    timeFilter30d.classList.contains('bg-primary-light') ? '30d' :
+                    timeFilter90d.classList.contains('bg-primary-light') ? '90d' : '7d';
+                
+                // Use our API function with time range
+                const profileData = await fetchProfileDataByTimeRange(currentPlatform, currentUsername, activeTimeRange);
+                
+                // Update UI with the fetched data
+                updateCurrentProfile(profileData);
+
+                // Reload performance data after scraping
+                await loadPerformanceData(currentPlatform, currentUsername);
+                
+                // Success notification
+                showToast('Data successfully updated!', 'success');
+                
+                // Reset button state
+                scrapeBtn.innerHTML = '<i class="fas fa-sync-alt mr-2"></i> Scrape Data';
+                scrapeBtn.disabled = false;
+            } catch (error) {
+                console.error('Scraping error:', error);
+                scrapeBtn.innerHTML = '<i class="fas fa-sync-alt mr-2"></i> Scrape Data';
+                scrapeBtn.disabled = false;
+                showToast('An unexpected error occurred.', 'error');
+            }
+        });
+        
+        // Export button functionality
+        const exportBtn = document.getElementById('export-btn');
+        
+        // Function to convert data to CSV format
+        function convertToCSV(data) {
+            // Create CSV header row
+            const headers = ['Metric', 'Value'];
+            let csvContent = headers.join(',') + '\n';
+            
+            // Add profile data rows
+            csvContent += `Username,${data.username}\n`;
+            csvContent += `Platform,${data.platform}\n`;
+            csvContent += `Status,${data.status}\n`;
+            csvContent += `Followers,${data.followers}\n`;
+            csvContent += `Followers Growth,${data.followersGrowth}%\n`;
+            csvContent += `Likes,${data.likes}\n`;
+            csvContent += `Likes Growth,${data.likesGrowth}%\n`;
+            csvContent += `Engagement Rate,${data.engagement}%\n`;
+            csvContent += `Engagement Growth,${data.engagementGrowth}%\n`;
+            csvContent += `Views,${data.views}\n`;
+            csvContent += `Views Growth,${data.viewsGrowth}%\n`;
+            csvContent += `Export Date,${new Date().toISOString().split('T')[0]}\n`;
+            
+            return csvContent;
+        }
+        
+        exportBtn.addEventListener('click', async () => {
+            // Show loading state
+            exportBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Exporting...';
+            exportBtn.disabled = true;
+            
+            // Show toast
+            showToast('Preparing export file...', 'loading');
+            
+            try {
+                // Gather current profile data from UI
+                const currentDate = new Date().toISOString().split('T')[0];
+                const profileName = document.querySelector('.flex-col.md\\:flex-row h3').textContent.replace('@', '');
+                
+                // Get current profile information
+                const profileData = {
+                    username: profileName,
+                    platform: document.querySelector('.flex-col.md\\:flex-row p.text-gray-500').textContent.replace(' Influencer', ''),
+                    status: document.querySelector('.flex-col.md\\:flex-row span.px-2.py-1').textContent,
+                    followers: document.querySelectorAll('.grid.grid-cols-2.md\\:grid-cols-4 > div')[0].querySelector('p.text-xl').textContent,
+                    likes: document.querySelectorAll('.grid.grid-cols-2.md\\:grid-cols-4 > div')[1].querySelector('p.text-xl').textContent,
+                    engagement: document.querySelectorAll('.grid.grid-cols-2.md\\:grid-cols-4 > div')[2].querySelector('p.text-xl').textContent,
+                    views: document.querySelectorAll('.grid.grid-cols-2.md\\:grid-cols-4 > div')[3].querySelector('p.text-xl').textContent,
+                    followersGrowth: extractGrowthValue(document.querySelectorAll('.grid.grid-cols-2.md\\:grid-cols-4 > div')[0].querySelector('p:last-child')),
+                    likesGrowth: extractGrowthValue(document.querySelectorAll('.grid.grid-cols-2.md\\:grid-cols-4 > div')[1].querySelector('p:last-child')),
+                    engagementGrowth: extractGrowthValue(document.querySelectorAll('.grid.grid-cols-2.md\\:grid-cols-4 > div')[2].querySelector('p:last-child')),
+                    viewsGrowth: extractGrowthValue(document.querySelectorAll('.grid.grid-cols-2.md\\:grid-cols-4 > div')[3].querySelector('p:last-child')),
+                    exportDate: currentDate
+                };
+                
+                // Helper function to extract growth value from element
+                function extractGrowthValue(element) {
+                    // Remove any non-numeric characters except . and -
+                    const text = element.textContent.trim();
+                    return text.replace(/[^\d.-]/g, '');
+                }
+                
+                // Convert to CSV format
+                const csvString = convertToCSV(profileData);
+                
+                // Create a downloadable file
+                const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${profileName}_profile_report_${currentDate}.csv`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                // Reset button state
+                exportBtn.innerHTML = '<i class="fas fa-download mr-2"></i> Export Data';
+                exportBtn.disabled = false;
+                
+                showToast('Data exported as CSV successfully!', 'success');
+            } catch (error) {
+                console.error('Export error:', error);
+                exportBtn.innerHTML = '<i class="fas fa-download mr-2"></i> Export Data';
+                exportBtn.disabled = false;
+                showToast('Failed to export data.', 'error');
+            }
+        });
+        
+        // Time filter functionality
+        const timeFilter7d = document.getElementById('time-filter-7d');
+        const timeFilter30d = document.getElementById('time-filter-30d');
+        const timeFilter90d = document.getElementById('time-filter-90d');
+        
+        // Track the current profile information for time filter changes
+        let currentProfileInfo = {
+            username: 'socialqueen',
+            platform: 'TikTok'
+        };
+        
+        function setActiveTimeFilter(activeButton) {
+            // Reset all buttons
+            timeFilter7d.className = 'px-3 py-1 text-xs bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-md';
+            timeFilter30d.className = 'px-3 py-1 text-xs bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-md';
+            timeFilter90d.className = 'px-3 py-1 text-xs bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-md';
+            
+            // Set active button
+            activeButton.className = 'px-3 py-1 text-xs bg-primary-light dark:bg-primary-dark text-white rounded-md';
+        }
+        
+        // Function to update data based on time range
+        async function updateProfileDataByTimeRange(timeRange) {
+            try {
+                showToast(`Loading ${timeRange} data...`, 'loading');
+                
+                // Fetch data for the current profile with the selected time range
+                const profileData = await fetchProfileDataByTimeRange(
+                    currentProfileInfo.platform, 
+                    currentProfileInfo.username, 
+                    timeRange
+                );
+                
+                // Update UI with the new data
+                updateCurrentProfile(profileData);
+                        
+                showToast(`Updated to ${timeRange} view`, 'success');
+            } catch (error) {
+                console.error(`Error loading ${timeRange} data:`, error);
+                showToast(`Failed to load ${timeRange} data`, 'error');
+            }
+        }
+        
+        timeFilter7d.addEventListener('click', () => {
+            setActiveTimeFilter(timeFilter7d);
+            updateProfileDataByTimeRange('7d');
+        });
+        
+        timeFilter30d.addEventListener('click', () => {
+            setActiveTimeFilter(timeFilter30d);
+            updateProfileDataByTimeRange('30d');
+        });
+        
+        timeFilter90d.addEventListener('click', () => {
+            setActiveTimeFilter(timeFilter90d);
+            updateProfileDataByTimeRange('90d');
+        });
+        
+        // Update the updateCurrentProfile function to store current profile info
+        function updateCurrentProfile(profileData) {
+            // Store current profile for time filter changes
+            currentProfileInfo = {
+                username: profileData.username.replace('@', ''),
+                platform: profileData.platform
+            };
+            
+            // ...existing profile update code...
+            const profileImage = document.querySelector('.flex-col.md\\:flex-row img');
+            const profileName = document.querySelector('.flex-col.md\\:flex-row h3');
+            const profileType = document.querySelector('.flex-col.md\\:flex-row p.text-gray-500');
+            const profileStatus = document.querySelector('.flex-col.md\\:flex-row span.px-2.py-1');
+            
+            // Update profile header
+            profileImage.src = profileData.avatar;
+            profileName.textContent = profileData.username.startsWith('@') ? profileData.username : '@' + profileData.username;
+            profileType.textContent = profileData.platform + ' Influencer';
+            
+            // ...rest of the existing update code...
+        }
+        
+        // Update search form submission to also store the selected time range
+        searchForm.addEventListener('submit', async (e) => {
+            // ...existing search form code...
+            try {
+                // Get currently active time filter
+                const activeTimeRange = 
+                    timeFilter30d.classList.contains('bg-primary-light') ? '30d' :
+                    timeFilter90d.classList.contains('bg-primary-light') ? '90d' : '7d';
+                
+                // Use the API function to fetch profile data with time range
+                const profileData = await fetchProfileDataByTimeRange(platform, username, activeTimeRange);
+                
+                // Update the UI with fetched data
+                updateCurrentProfile(profileData);
+
+                // Load performance data after profile analysis
+                await loadPerformanceData(platform, username);
+                
+                // ...existing code...
+            } catch (error) {
+                // ...existing error handling...
+            }
+        });
+        
+        // Similarly update the scrape button to use the current time range
+        scrapeBtn.addEventListener('click', async () => {
+            // ...existing scrape button code...
+            try {
+                // Get current profile data to determine platform and username
+                const currentUsername = document.querySelector('.flex-col.md\\:flex-row h3').textContent.replace('@', '');
+                const currentPlatform = document.querySelector('.flex-col.md\\:flex-row p.text-gray-500').textContent.replace(' Influencer', '');
+                
+                // Get currently active time filter
+                const activeTimeRange = 
+                    timeFilter30d.classList.contains('bg-primary-light') ? '30d' :
+                    timeFilter90d.classList.contains('bg-primary-light') ? '90d' : '7d';
+                
+                // Use our API function with time range
+                const profileData = await fetchProfileDataByTimeRange(currentPlatform, currentUsername, activeTimeRange);
+                
+                // Update UI with the fetched data
+                updateCurrentProfile(profileData);
+
+                // Reload performance data after scraping
+                await loadPerformanceData(currentPlatform, currentUsername);
+                
+                // ...existing code...
+            } catch (error) {
+                // ...existing error handling...
+            }
+        });
+        
+        // Initialize remaining functionality when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            // Make sure sidebar links work (for demo)
+            const sidebarLinks = document.querySelectorAll('.flex-col.w-64 nav a');
+            sidebarLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    
+                    // Remove active class from all links
+                    sidebarLinks.forEach(l => {
+                        l.classList.remove('bg-primary-light/10', 'text-primary-light', 'dark:bg-primary-dark/20', 'dark:text-primary-dark');
+                        l.classList.add('hover:bg-gray-100', 'dark:hover:bg-gray-700');
+                    });
+                    
+                    // Add active class to clicked link
+                    link.classList.add('bg-primary-light/10', 'text-primary-light', 'dark:bg-primary-dark/20', 'dark:text-primary-dark');
+                    link.classList.remove('hover:bg-gray-100', 'dark:hover:bg-gray-700');
+                    
+                    // Show a toast for now (in real app, would change content)
+                    const pageName = link.textContent.trim();
+                    showToast(`Navigating to ${pageName}...`, 'info');
+                });
+            });
+        });
+        
+        // Function to update AI Insights section
+        function updateAIInsights(insights) {
+            const aiSummaryElement = document.getElementById('ai-summary');
+            
+            // Create HTML content for the insights
+            let insightsHTML = `
+                <p class="mb-3">${insights.summary}</p>
+            `;
+            
+            // Add strengths if available
+            if (insights.strengths.length > 0) {
+                insightsHTML += `
+                    <div class="mb-2">
+                        <h5 class="font-medium text-green-600 dark:text-green-400">Strengths:</h5>
+                        <ul class="list-disc list-inside pl-2">
+                            ${insights.strengths.map(strength => `<li>${strength}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+            
+            // Add weaknesses if available
+            if (insights.weaknesses.length > 0) {
+                insightsHTML += `
+                    <div class="mb-2">
+                        <h5 class="font-medium text-red-600 dark:text-red-400">Areas for Improvement:</h5>
+                        <ul class="list-disc list-inside pl-2">
+                            ${insights.weaknesses.map(weakness => `<li>${weakness}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+            
+            // Add suggestions
+            insightsHTML += `
+                <div class="mt-3">
+                    <h5 class="font-medium text-primary-light dark:text-primary-dark">Suggestions:</h5>
+                    <ul class="list-disc list-inside pl-2">
+                        ${insights.suggestions.map(suggestion => `<li>${suggestion}</li>`).join('')}
+                    </ul>
+                </div>
+                <p class="mt-3 text-xs text-gray-500">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    These insights are generated based on current metrics and industry benchmarks.
+                </p>
+            `;
+            
+            // Update the AI insights section
+            aiSummaryElement.innerHTML = insightsHTML;
+            
+            // Apply appropriate styling based on account health
+            const aiInsightsSection = document.getElementById('ai-insights');
+            
+            // Reset classes first
+            aiInsightsSection.classList.remove(
+                'border-green-500', 'border-yellow-500', 
+                'border-red-500', 'border-primary-light',
+                'border-primary-dark'
+            );
+            
+            // Apply health-specific styling
+            switch (insights.overallHealth) {
+                case 'excellent':
+                    aiInsightsSection.classList.add('border-green-500');
+                    break;
+                case 'good':
+                    aiInsightsSection.classList.add('border-primary-light', 'dark:border-primary-dark');
+                    break;
+                case 'moderate':
+                    aiInsightsSection.classList.add('border-yellow-500');
+                    break;
+                case 'concerning':
+                    aiInsightsSection.classList.add('border-red-500');
+                    break;
+            }
+        }
+
+        async function loadPerformanceData(platform, profile) {
+            const tbody = document.getElementById('performance-table').querySelector('tbody');
+            tbody.innerHTML = '<tr><td colspan="19" class="text-center py-4 text-gray-500 dark:text-gray-400"><i class="fas fa-spinner fa-spin mr-2"></i>Loading performance data...</td></tr>'; // Show loading state
+
+            try {
+                const backendUrl = 'http://127.0.0.1:5000'; // Or your actual backend URL
+                const response = await fetch(`${backendUrl}/performance_data`, { // Use full URL
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ platform, profile }),
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                const posts = data.performanceData;
+
+                tbody.innerHTML = ''; // Clear loading state or previous data
+
+                if (!posts || posts.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="19" class="text-center py-4 text-gray-500 dark:text-gray-400">No performance data found for this profile.</td></tr>';
+                    return;
+                }
+
+                posts.forEach(post => {
+                    const row = document.createElement('tr');
+                    row.classList.add('hover:bg-gray-50', 'dark:hover:bg-gray-700'); // Add hover effect
+
+                    // Format timestamp if needed (assuming it's a Unix timestamp or ISO string)
+                    let formattedTimestamp = post.timestamp;
+                    if (formattedTimestamp) {
+                        try {
+                            // Attempt to format as date string (adjust format as needed)
+                            formattedTimestamp = new Date(isNaN(formattedTimestamp) ? formattedTimestamp : parseInt(formattedTimestamp) * 1000).toLocaleDateString();
+                        } catch (e) {
+                            console.warn("Could not format timestamp:", post.timestamp);
+                            // Keep original timestamp if formatting fails
+                        }
+                    }
+
+
+                    row.innerHTML = `
+                        <td class="px-3 py-2 whitespace-nowrap"><a href="${post.accountUrl || '#'}" target="_blank" class="text-primary-light dark:text-primary-dark hover:underline">${post.accountUrl ? post.accountUrl.split('/').pop() : 'N/A'}</a></td>
+                        <td class="px-3 py-2 max-w-xs truncate"><a href="${post.postUrl || '#'}" target="_blank" class="text-primary-light dark:text-primary-dark hover:underline">${post.postUrl || 'N/A'}</a></td>
+                        <td class="px-3 py-2 whitespace-nowrap">${formattedTimestamp || 'N/A'}</td>
+                        <td class="px-3 py-2">${post.category || 'N/A'}</td>
+                        <td class="px-3 py-2">${post.theme || 'N/A'}</td>
+                        <td class="px-3 py-2 max-w-xs truncate" title="${post.hook || ''}">${post.hook || 'N/A'}</td>
+                        <td class="px-3 py-2 max-w-xs truncate" title="${post.caption || ''}">${post.caption || 'N/A'}</td>
+                        <td class="px-3 py-2 text-right">${post.captionLength || 0}</td>
+                        <td class="px-3 py-2 text-right">${formatNumber(post.followers) || 0}</td>
+                        <td class="px-3 py-2 text-right">${formatNumber(post.views) || 0}</td>
+                        <td class="px-3 py-2 text-right">${formatNumber(post.likes) || 0}</td>
+                        <td class="px-3 py-2 text-right">${formatNumber(post.comments) || 0}</td>
+                        <td class="px-3 py-2 text-right">${post.erFollowers !== undefined ? post.erFollowers.toFixed(2) + '%' : 'N/A'}</td>
+                        <td class="px-3 py-2 text-right">${post.erLikesComments !== undefined ? post.erLikesComments.toFixed(2) + '%' : 'N/A'}</td>
+                        <td class="px-3 py-2 text-right">${formatNumber(post.shares) || 0}</td>
+                        <td class="px-3 py-2 text-right">${post.erShares !== undefined ? post.erShares.toFixed(2) + '%' : 'N/A'}</td>
+                        <td class="px-3 py-2 text-right">${post.duration || 0}</td>
+                        <td class="px-3 py-2 text-right">${post.viralityScore !== undefined ? post.viralityScore.toFixed(4) : 'N/A'}</td>
+                        <td class="px-3 py-2"><span class="px-2 py-1 text-xs rounded-full ${getRatingClass(post.erRating)}">${post.erRating || 'N/A'}</span></td>
+                    `;
+                    tbody.appendChild(row);
+                });
+
+            } catch (error) {
+                console.error('Error loading performance data:', error);
+                tbody.innerHTML = `<tr><td colspan="19" class="text-center py-4 text-red-500">Error loading data: ${error.message}</td></tr>`;
+                showToast(`Error loading performance data: ${error.message}`, 'error');
+            }
+        }
+
+        // Helper function to get CSS class based on ER Rating
+        function getRatingClass(rating) {
+            switch (rating) {
+                case 'BEST':
+                    return 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200';
+                case 'GOOD':
+                    return 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200';
+                case 'AVERAGE':
+                    return 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200';
+                case 'LOW':
+                    return 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200';
+                default:
+                    return 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200';
+            }
+        }
+
+        // Remove the initial mock data load on DOMContentLoaded
+        // document.addEventListener('DOMContentLoaded', loadPerformanceData); // Remove this line
+    </script>
+<p style="border-radius: 8px; text-align: center; font-size: 12px; color: #fff; margin-top: 16px;position: fixed; left: 8px; bottom: 8px; z-index: 10; background: rgba(0, 0, 0, 0.8); padding: 4px 8px;">Made with <img src="https://enzostvs-deepsite.hf.space/logo.svg" alt="DeepSite Logo" style="width: 16px; height: 16px; vertical-align: middle;display:inline-block;margin-right:3px;filter:brightness(0) invert(1);"><a href="https://enzostvs-deepsite.hf.space" style="color: #fff;text-decoration: underline;" target="_blank" >DeepSite</a> - 🧬 <a href="https://enzostvs-deepsite.hf.space?remix=Poopsick/my-awesome-space" style="color: #fff;text-decoration: underline;" target="_blank" >Remix</a></p>
+</body>
+</html>

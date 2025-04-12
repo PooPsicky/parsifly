@@ -1,0 +1,17 @@
+# Ignore Python cache and virtual environments
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+env/
+.env
+
+# Ignore backend environment file
+backend/.env
+
+# Ignore Node modules (if you add frontend dependencies later)
+node_modules/
+
+# Ignore OS-specific files
+.DS_Store
+Thumbs.db
