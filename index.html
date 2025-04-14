@@ -1251,7 +1251,7 @@
          */
         async function loadPerformanceData(platform, profile) {
             
-            const tbody = document.getElementById('performance-table').querySelector('tbody');
+            const tbody = document.getElementById('performance-table-body'); // Corrected ID selection
             tbody.innerHTML = `
                 <tr>
                     <td colspan="19" class="text-center py-4 text-gray-500 dark:text-gray-400">
@@ -1259,10 +1259,20 @@
                     </td>
                 </tr>
             `;
+            // Ensure loading toast is shown
+            showToast(`Loading ${platform} data for ${profile}...`, 'loading', 10000000);
 
             try {
-                const backendUrl = 'http://127.0.0.1:5000'; // Or your actual backend URL
-                const response = await fetch(`${backendUrl}/performance_data`, { // Use full URL
+                // !!! IMPORTANT: Replace 'YOUR_BACKEND_API_URL' with the actual public URL of your deployed backend service !!!
+                // Example: const backendUrl = 'https://your-backend-service-production.up.railway.app';
+                const backendUrl = 'YOUR_BACKEND_API_URL'; // <-- UPDATE THIS
+                // const backendUrl = 'http://127.0.0.1:5000'; // Keep this commented out or remove for deployment
+
+                if (!backendUrl || backendUrl === 'YOUR_BACKEND_API_URL') {
+                    throw new Error("Backend API URL is not configured.");
+                }
+
+                const response = await fetch(`${backendUrl}/api/performance_data`, { // Ensure the endpoint path is correct (/api/performance_data)
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -1380,6 +1390,5 @@
         }
 
     </script>
-<p style="border-radius: 8px; text-align: center; font-size: 12px; color: #fff; margin-top: 16px;position: fixed; left: 8px; bottom: 8px; z-index: 10; background: rgba(0, 0, 0, 0.8); padding: 4px 8px;">Made with <img src="https://enzostvs-deepsite.hf.space/logo.svg" alt="DeepSite Logo" style="width: 16px; height: 16px; vertical-align: middle;display:inline-block;margin-right:3px;filter:brightness(0) invert(1);"><a href="https://enzostvs-deepsite.hf.space" style="color: #fff;text-decoration: underline;" target="_blank" >DeepSite</a> - 🧬 <a href="https://enzostvs-deepsite.hf.space?remix=Poopsick/my-awesome-space" style="color: #fff;text-decoration: underline;" target="_blank" >Remix</a></p>   
 </body>
 </html>
