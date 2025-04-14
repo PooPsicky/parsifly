@@ -6,8 +6,8 @@
     <title>Parsifly - Social Media Analytics Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Include the API handler script -->
-    <script src="api.js"></script>
+    <!-- Include the API handler script - REMOVED -->
+    <!-- <script src="api.js"></script> -->
     <script>
         tailwind.config = {
             darkMode: 'class',
@@ -167,20 +167,21 @@
                             <i class="fas fa-search text-gray-400"></i>
                         </div> 
                         <div id="search-error" class="absolute inset-y-0 right-[28%] text-red-600 hidden">
-                            <i class="fas fa-search text-gray-400"></i>
+                            <!-- Error message will be set via JS -->
                         </div>
                         <input
                             id="profile-search"                            
                             type="text"
                             class="block w-full pl-10 pr-20 py-2 border border-gray-300 rounded-md bg-white dark:bg-gray-700 dark:border-gray-600 focus:ring-primary-light dark:focus:ring-primary-dark focus:border-primary-light dark:focus:border-primary-dark sm:text-sm"
-                            placeholder="Search for a profile"                            
+                            placeholder="Search profile URL or username"                            
                             aria-label="Search for a profile"
                             autocomplete="off"
                         />
                         <div class="absolute inset-y-0 right-12 flex items-center  ">
                             <select
                                 id="platform-select"
-                                class="h-full py-1 px-4 border-none bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-200 focus:outline-none rounded-md sm:hidden"
+                                class="h-full py-1 px-4 border-none bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-200 focus:outline-none rounded-md"
+                                aria-label="Select platform"
                             >
                                 <option value="TikTok">TikTok</option>
                                 <option value="Instagram">Instagram</option>
@@ -316,67 +317,57 @@
                         </div>
                     </div>
                     <div class="flex flex-col md:flex-row items-center md:items-start md:space-x-6 sm:flex-col">
-                        <img src="https://randomuser.me/api/portraits/women/65.jpg" alt="Profile" class="w-24 h-24 rounded-full mb-4 md:mb-0 md:mr-6">
+                        <img id="profile-card-image" src="placeholder.jpg" alt="Profile" class="w-24 h-24 rounded-full mb-4 md:mb-0 md:mr-6 bg-gray-300 dark:bg-gray-600"> <!-- Added ID and placeholder -->
                         <div class="flex-1">
                             <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
                                 <div>
-                                    <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-200">@socialqueen</h3>
-                                    <p class="text-gray-600 dark:text-gray-300">TikTok Influencer</p>
+                                    <h3 id="profile-card-name" class="text-lg font-semibold text-gray-900 dark:text-gray-200">@username</h3> <!-- Added ID -->
+                                    <p id="profile-card-type" class="text-gray-600 dark:text-gray-300">Platform Influencer</p> <!-- Added ID -->
                                 </div>
                                 <div class="flex items-center mt-2 md:mt-0">
-                                    <span class="px-2 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 text-xs rounded-full">Active</span>
+                                    <span id="profile-card-status" class="px-2 py-1 bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 text-xs rounded-full">Status</span> <!-- Added ID -->
                                 </div>
                             </div>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6 sm:grid-cols-2">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                                 <div class="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg">
                                     <p class="text-sm text-gray-600 dark:text-gray-300">Followers</p>
-                                    <p class="text-xl font-semibold">1.2M</p>
-                                    <p class="text-sm text-green-500 flex items-center">
-                                        <i class="fas fa-arrow-up mr-1"></i> 12.5%
+                                    <p id="profile-card-followers" class="text-xl font-semibold">0</p> <!-- Added ID -->
+                                    <p id="profile-card-followers-growth" class="text-sm text-gray-500 flex items-center"> <!-- Added ID -->
+                                        <i class="fas fa-minus mr-1"></i> 0.0%
                                     </p>
                                 </div>
                                 <div class="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg">
                                     <p class="text-sm text-gray-600 dark:text-gray-300">Likes</p>
-                                    <p class="text-xl font-semibold">8.7M</p>
-                                    <p class="text-sm text-green-500 flex items-center">
-                                        <i class="fas fa-arrow-up mr-1"></i> 5.3%
+                                    <p id="profile-card-likes" class="text-xl font-semibold">0</p> <!-- Added ID -->
+                                    <p id="profile-card-likes-growth" class="text-sm text-gray-500 flex items-center"> <!-- Added ID -->
+                                        <i class="fas fa-minus mr-1"></i> 0.0%
                                     </p>
                                 </div>
                                 <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
                                     <p class="text-sm text-gray-500 dark:text-gray-400">Engagement</p>
-                                    <p class="text-xl font-semibold">9.8%</p>
-                                    <p class="text-sm text-red-500 flex items-center">
-                                        <i class="fas fa-arrow-down mr-1"></i> 1.2%
+                                    <p id="profile-card-engagement" class="text-xl font-semibold">0.0%</p> <!-- Added ID -->
+                                    <p id="profile-card-engagement-growth" class="text-sm text-gray-500 flex items-center"> <!-- Added ID -->
+                                        <i class="fas fa-minus mr-1"></i> 0.0%
                                     </p>
                                 </div>
                                 <div class="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg">
                                     <p class="text-sm text-gray-600 dark:text-gray-300">Views</p>
-                                    <p class="text-xl font-semibold">24.5M</p>
-                                    <p class="text-sm text-green-500 flex items-center">
-                                        <i class="fas fa-arrow-up mr-1"></i> 18.7%
+                                    <p id="profile-card-views" class="text-xl font-semibold">0</p> <!-- Added ID -->
+                                    <p id="profile-card-views-growth" class="text-sm text-gray-500 flex items-center"> <!-- Added ID -->
+                                        <i class="fas fa-minus mr-1"></i> 0.0%
                                     </p>
                                 </div>
                             </div>
                             <div class="flex items-center justify-between flex-wrap mb-2">
-                                <h4 class="font-medium">Analytics</h4>
+                                <h4 class="font-medium">Time Filter (Styling Only)</h4> <!-- Updated heading -->
                                 <div class="flex space-x-1">
                                     <button id="time-filter-7d" class="px-3 py-1 text-xs bg-primary-light dark:bg-primary-dark text-white rounded-md focus:outline-none focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-dark transition duration-150 ease-in-out">7d</button>
                                     <button id="time-filter-30d" class="px-3 py-1 text-xs bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-dark transition duration-150 ease-in-out">30d</button>
                                     <button id="time-filter-90d" class="px-3 py-1 text-xs bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-dark transition duration-150 ease-in-out">90d</button>
                                 </div>
                             </div>
-                            <!-- AI Insights Section -->
-                            <div id="ai-insights" class="mt-6 p-4 bg-gray-100 dark:bg-gray-700 rounded-lg border-l-4 border-primary-light dark:border-primary-dark">
-                                <h4 class="font-medium text-lg flex items-center mb-3">
-                                    <i class="fas fa-robot mr-2 text-primary-light dark:text-primary-dark"></i>
-                                    AI Suggestions
-                                </h4>
-                                <div id="ai-summary" class="text-sm">
-                                    <div class="animate-pulse text-gray-400 dark:text-gray-500">
-                                        <p>Analyzing profile metrics...</p>
-                                    </div>
-                                </div>
-                            </div>                            
+                            <!-- AI Insights Section - REMOVED -->
+                            <!-- <div id="ai-insights" ... > ... </div> -->
                         </div>
                     </div>
                 </div>
@@ -709,246 +700,208 @@
         }
         const searchForm = document.getElementById('search-form');
         const profileSearchInput = document.getElementById('profile-search');
+        const platformSelect = document.getElementById('platform-select'); // Get platform select element
         const searchError = document.getElementById('search-error');
-        
-        const profilePattern = /^(https?:\/\/)?(www\.)?(tiktok.com|instagram.com|youtube.com|@?[a-zA-Z0-9_]+)/;
-        const urlPattern = /^(https?:\/\/)?(www\.)?(tiktok\.com|instagram\.com|youtube\.com)/;
-        
-        // Handle search form submission
+        const searchButtonContent = document.getElementById('search-button-content');
+        const submitSearchButton = document.getElementById('submit-search-form-button');
+
+        // Regex patterns
+        const urlPattern = /^(https?:\/\/)?(www\.)?(tiktok\.com|instagram\.com|youtube\.com)/i;
+        const usernamePattern = /^@?[a-zA-Z0-9_.-]+$/; // Allow @, letters, numbers, _, ., -
+
         profileSearchInput.addEventListener('keydown', (event) => {
             if (event.key === 'Enter') {
-                document.getElementById('submit-search-form-button').click()
+                event.preventDefault(); // Prevent default form submission if needed
+                submitSearchButton.click();
             }
-        })
-        
+        });
+
         searchForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            
-            const searchInputValue = profileSearchInput.value.trim();
-            const isValid = profilePattern.test(searchInputValue);
-            searchError.classList.add('hidden');
-            
-            if (!isValid) {
-                searchError.classList.remove('hidden');
-                searchError.textContent = "Invalid input format.";
-                return; // Stop form submission
-            }
+            searchError.classList.add('hidden'); // Hide error initially
+
             const searchValue = profileSearchInput.value.trim();
-            // Disable input and button while loading
-            profileSearchInput.disabled = true;
-            document.getElementById('submit-search-form-button').disabled = true;
-            const searchButtonContent = document.getElementById('search-button-content');
-            searchButtonContent.innerHTML = `
-                <div class="flex items-center justify-center spinner-sm">
-                  <i class="fas fa-spinner fa-spin mr-2"></i>
-                    Loading...
-                </div>
-            `;
-            document.getElementById('submit-search-form-button').disabled = true;
-            // Detect if it's a URL
+            if (!searchValue) {
+                searchError.textContent = "Input cannot be empty.";
+                searchError.classList.remove('hidden');
+                return;
+            }
+
+            let platform = '';
+            let profileIdentifier = ''; // This will hold the username or relevant part of URL
             const isUrl = urlPattern.test(searchValue);
-            // Determine platform - either from URL or from dropdown selection
-            
-            let platform = '';          
-            try {
-                if (isUrl) {
-                    // Auto-detect from URL
-                    if (searchValue.includes('tiktok.com')) platform = 'TikTok';
-                    else if (searchValue.includes('instagram.com')) platform = 'Instagram';
-                    else if (searchValue.includes('youtube.com')) platform = 'YouTube';
-                    else platform = document.getElementById('platform-select').value; // Fallback to selected
-                } else {
-                    // Use the platform selected from dropdown
-                    platform = document.getElementById('platform-select').value; // Get platform from dropdown
-                }
-                
-                else if (searchValue.includes('instagram.com')) platform = 'Instagram';
-                else if (searchValue.includes('youtube.com')) platform = 'YouTube';
-                else platform = document.getElementById('platform-select').value; // Fallback to selected
-            } else {
-                // Use the platform selected from dropdown
-                platform = document.getElementById('platform-select').value; // Get platform from dropdown
-            }
-            
-            // Extract username from URL or use as-is
-            let username = searchValue;
+
             if (isUrl) {
-                const urlParts = searchValue.split('/');
-                username = urlParts[urlParts.length - 1].split('?')[0] || urlParts[urlParts.length - 2];
-            } else {
-                // Remove @ prefix if present
-                username = username.replace(/^@/, '');
-            }
-            
-            if (!profilePattern.test(searchValue)) {                
-                showToast("Please enter a valid TikTok, Instagram, or YouTube URL or username.", "error");
-                return;   
-            }
-            
-            // Show loading state with toast
-            showToast(`Analyzing ${platform} profile: ${username}...`, 'loading', 10000000);
-            
-            
-            try {                
-                // Fetch profile data from the backend
-                const response = await fetch(`http://127.0.0.1:5000/profile_data`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ platform: platform, profile: username }),
-                });
-                
-                if (!response.ok) { const errorData = await response.json();
-                    throw new Error(errorData.error || 'An error occurred while fetching data.');
+                // Extract platform and identifier from URL
+                try {
+                    const url = new URL(searchValue.startsWith('http') ? searchValue : `https://${searchValue}`);
+                    const hostname = url.hostname.toLowerCase();
+                    const pathParts = url.pathname.split('/').filter(part => part); // Get non-empty path parts
+
+                    if (hostname.includes('tiktok.com')) {
+                        platform = 'TikTok';
+                        profileIdentifier = pathParts.find(part => part.startsWith('@'))?.replace('@', '') || pathParts[0]; // Find @username or take first part
+                    } else if (hostname.includes('instagram.com')) {
+                        platform = 'Instagram';
+                        profileIdentifier = pathParts[0]; // Usually the first path part
+                    } else if (hostname.includes('youtube.com')) {
+                        platform = 'YouTube';
+                        // Handle different YouTube URL formats (channel, user, handle, short)
+                        if (pathParts[0] === 'channel') profileIdentifier = pathParts[1];
+                        else if (pathParts[0] === 'user') profileIdentifier = pathParts[1];
+                        else if (pathParts[0] === 'shorts') profileIdentifier = pathParts[1]; // Assuming short ID isn't profile
+                        else if (pathParts[0]?.startsWith('@')) profileIdentifier = pathParts[0].replace('@', ''); // Handle @handle
+                        else profileIdentifier = pathParts[0]; // Fallback
+                    }
+
+                    if (!profileIdentifier) { // If identifier extraction failed
+                         throw new Error("Could not extract profile identifier from URL.");
+                    }
+                    // Update dropdown to match detected platform
+                    platformSelect.value = platform;
+
+                } catch (err) {
+                    console.error("URL parsing error:", err);
+                    searchError.textContent = "Invalid URL format.";
+                    searchError.classList.remove('hidden');
+                    return;
                 }
+            } else if (usernamePattern.test(searchValue)) {
+                // Assume it's a username, use selected platform
+                platform = platformSelect.value;
+                profileIdentifier = searchValue.replace(/^@/, ''); // Remove leading @ if present
+            } else {
+                searchError.textContent = "Invalid input. Use URL or username.";
+                searchError.classList.remove('hidden');
+                return;
+            }
 
-                // Get currently active time filter
-                const activeTimeRange = 
-                timeFilter30d.classList.contains('bg-primary-light') ? '30d' : timeFilter90d.classList.contains('bg-primary-light') ? '90d' : '7d';
-                
-                // Use the API function to fetch profile data with time range
-                const profileData = await fetchProfileDataByTimeRange(platform, username, activeTimeRange);
-                
-                // Update the UI with fetched data
-                updateCurrentProfile(profileData);
+            // --- Loading State ---
+            profileSearchInput.disabled = true;
+            submitSearchButton.disabled = true;
+            platformSelect.disabled = true; // Disable select during load
+            searchButtonContent.innerHTML = `<div class="spinner spinner-sm mx-auto"></div>`;
+            showToast(`Analyzing ${platform} profile: ${profileIdentifier}...`, 'loading', 10000000); // Long duration for loading
 
-                // Load performance data after profile analysis
-                await loadPerformanceData(platform, username);
-                
-                showNotification('Profile analysis complete!', 'success');
+            try {
+                // Call loadPerformanceData which handles fetching and UI updates
+                await loadPerformanceData(platform, profileIdentifier);
+                showNotification('Profile analysis complete!', 'success'); // Keep notification
+                // Toast will be hidden by loadPerformanceData on success/error
+
             } catch (error) {
-                console.error('Error analyzing profile:', error);
-                
-                showNotification(`Failed to analyze profile: ${error.message}`, 'error');
-                showToast(`Failed to analyze profile: ${error.message}`, 'error');
-            } 
-            finally {
-                searchButtonContent.innerHTML = `
-                <div class="flex items-center justify-center spinner-sm">
-                    <i class="fas fa-arrow-right"></i>
-                </div>
-            `;
-            
-                // Enable input and button after loading is done
+                // Error handling is now primarily within loadPerformanceData
+                // showNotification is handled there too via showToast
+                console.error('Error initiating profile analysis:', error);
+                // Optionally show a generic error notification here if loadPerformanceData doesn't
+                // showNotification(`Failed to analyze profile: ${error.message}`, 'error');
+            } finally {
+                // --- Reset Loading State ---
+                searchButtonContent.innerHTML = `<i class="fas fa-arrow-right"></i>`;
                 profileSearchInput.disabled = false;
-                document.getElementById('submit-search-form-button').disabled = false;
-                // Clear the search input
-                profileSearchInput.value = '';                
-                }
-        });
-        
-        
-        /**
-         * Updates the current profile section in the UI with the provided profile data.
-         * @param {object} profileData - The profile data to update the UI with.
-         */
-        function updateCurrentProfile(profileData) {
-            /**
-             * Updates the current profile section in the UI with the provided profile data.
-             * @param {object} profileData - The profile data to update the UI with.
-             */
-            // Store current profile for time filter changes
-            currentProfileInfo = {
-                username: profileData.username.replace('@', ''),
-                platform: profileData.platform
-            };
-            
-            const profileImage = document.querySelector('.flex-col.md\\:flex-row img');
-            const profileName = document.querySelector('.flex-col.md\\:flex-row h3');
-            const profileType = document.querySelector('.flex-col.md\\:flex-row p.text-gray-500');
-            const profileStatus = document.querySelector('.flex-col.md\\:flex-row span.px-2.py-1');
-            
-            // Update profile header
-            profileImage.src = profileData.avatar;
-            profileName.textContent = profileData.username.startsWith('@') ? profileData.username : '@' + profileData.username;
-            profileType.textContent = profileData.platform + ' Influencer';
-            
-            // Update status
-            profileStatus.textContent = profileData.status;
-            if (profileData.status === 'Private') {
-                profileStatus.classList.remove('bg-green-100', 'dark:bg-green-900', 'text-green-800', 'dark:text-green-200');
-                profileStatus.classList.add('bg-yellow-100', 'dark:bg-yellow-900', 'text-yellow-800', 'dark:text-yellow-200');
-            } else {
-                profileStatus.classList.remove('bg-yellow-100', 'dark:bg-yellow-900', 'text-yellow-800', 'dark:text-yellow-200');
-                profileStatus.classList.add('bg-green-100', 'dark:bg-green-900', 'text-green-800', 'dark:text-green-200');
+                submitSearchButton.disabled = false;
+                platformSelect.disabled = false; // Re-enable select
+                profileSearchInput.value = ''; // Clear input after search
             }
-            
-            // Update stats
-            const statCards = document.querySelectorAll('.grid.grid-cols-2.md\\:grid-cols-4 > div');
+        });
 
-            // Followers card - using formatNumber from our API module
-            statCards[0].querySelector('p.text-xl').textContent = formatNumber(profileData.followers);
-            const followersGrowthEl = statCards[0].querySelector('p:last-child');
-            updateGrowthElement(followersGrowthEl, profileData.followersGrowth);
-            
-            // Likes card
-            statCards[1].querySelector('p.text-xl').textContent = formatNumber(profileData.likes);
-            const likesGrowthEl = statCards[1].querySelector('p:last-child');
-            updateGrowthElement(likesGrowthEl, profileData.likesGrowth);
-            
-            // Engagement card
-            statCards[2].querySelector('p.text-xl').textContent = profileData.engagement + '%';
-            const engagementGrowthEl = statCards[2].querySelector('p:last-child');
-            updateGrowthElement(engagementGrowthEl, profileData.engagementGrowth);
-            
-            // Views card
-            statCards[3].querySelector('p.text-xl').textContent = formatNumber(profileData.views);
-            const viewsGrowthEl = statCards[3].querySelector('p:last-child');
-            updateGrowthElement(viewsGrowthEl, profileData.viewsGrowth);
 
-            // Generate and display AI insights
-            const aiInsights = generateAISummary(profileData);
-            updateAIInsights(aiInsights);
+        // === Profile Card Update ===
+        let currentProfileInfo = { username: '', platform: '' }; // Store current profile
+
+        /**
+         * Updates the profile card section in the UI.
+         * Uses data from the first post if available, or defaults.
+         * @param {object} firstPostData - Data object for the first post from performance data.
+         * @param {string} platform - The platform name.
+         * @param {string} username - The profile username.
+         */
+        function updateCurrentProfile(firstPostData, platform, username) {
+            // Store current profile for other functions (like scrape/export)
+            currentProfileInfo = { username: username, platform: platform };
+
+            const profileImage = document.getElementById('profile-card-image');
+            const profileName = document.getElementById('profile-card-name');
+            const profileType = document.getElementById('profile-card-type');
+            const profileStatus = document.getElementById('profile-card-status'); // Assuming status comes from elsewhere or defaults
+            const followersEl = document.getElementById('profile-card-followers');
+            const likesEl = document.getElementById('profile-card-likes'); // Assuming total likes isn't in post data
+            const engagementEl = document.getElementById('profile-card-engagement'); // Assuming overall engagement isn't in post data
+            const viewsEl = document.getElementById('profile-card-views'); // Assuming total views isn't in post data
+
+            // Update profile header
+            // profileImage.src = firstPostData?.authorMeta?.avatar || 'placeholder.jpg'; // Need avatar source
+            profileImage.src = 'placeholder.jpg'; // Use placeholder for now
+            profileName.textContent = username.startsWith('@') ? username : '@' + username;
+            profileType.textContent = platform + ' Influencer';
+
+            // Update status (Example: Default to Active, needs real data source)
+            profileStatus.textContent = 'Active';
+            profileStatus.className = 'px-2 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 text-xs rounded-full';
+
+            // Update stats using data from the first post (or defaults)
+            followersEl.textContent = formatNumber(firstPostData?.followers || 0);
+            likesEl.textContent = formatNumber(firstPostData?.likes || 0); // This is post likes, not total
+            engagementEl.textContent = (firstPostData?.erFollowers || 0).toFixed(1) + '%'; // Example: Use ER Followers
+            viewsEl.textContent = formatNumber(firstPostData?.views || 0); // This is post views, not total
+
+            // Update growth elements (Example: Default to 0%, needs real data source)
+            updateGrowthElement(document.getElementById('profile-card-followers-growth'), 0);
+            updateGrowthElement(document.getElementById('profile-card-likes-growth'), 0);
+            updateGrowthElement(document.getElementById('profile-card-engagement-growth'), 0);
+            updateGrowthElement(document.getElementById('profile-card-views-growth'), 0);
+
+            // AI Insights section and calls are removed
         }
-        
+
         /**
          * Updates a growth element in the UI based on the provided growth value.
          * @param {HTMLElement} element - The HTML element to update.
          * @param {number} growthValue - The growth value to display.
          */
         function updateGrowthElement(element, growthValue) {
-            const growth = parseFloat(growthValue);
+            const growth = parseFloat(growthValue) || 0; // Ensure it's a number
             const icon = element.querySelector('i');
-            
+
             if (growth >= 0) {
                 element.className = 'text-sm text-green-500 flex items-center';
                 icon.className = 'fas fa-arrow-up mr-1';
-                element.textContent = ' ' + growth + '%';
-                element.prepend(icon);
             } else {
                 element.className = 'text-sm text-red-500 flex items-center';
                 icon.className = 'fas fa-arrow-down mr-1';
-                element.textContent = ' ' + Math.abs(growth) + '%';
-                element.prepend(icon);
             }
+            // Update text content after setting classes
+            element.textContent = ' ' + Math.abs(growth).toFixed(1) + '%'; // Use toFixed(1) for consistency
+            element.prepend(icon); // Prepend icon after setting text
         }
-        
+
         /**
          * Formats a number to a more readable format (e.g., 1000 to 1K, 1000000 to 1M).
          * @param {number} number - The number to format.
          * @returns {string} The formatted number as a string.
          */
         function formatNumber(number) {
+            if (number === null || number === undefined) return '0'; // Handle null/undefined
             if (number >= 1000000) {
-                return (number / 1000000).toFixed(1) + 'M';
+                return (number / 1000000).toFixed(1).replace(/\.0$/, '') + 'M'; // Remove .0
             } else if (number >= 1000) {
-                return (number / 1000).toFixed(1) + 'K';
+                return (number / 1000).toFixed(1).replace(/\.0$/, '') + 'K'; // Remove .0
             }
-            return number;
+            return number.toString(); // Return as string
         }
-        
-        /**
-         * Handles scrape button functionality with error handling.
-         */
 
+        // === Scrape Button Functionality ===
         const scrapeBtn = document.getElementById('scrape-btn');
-        
+        const scrapeButtonContent = document.getElementById('scrape-button-content');
         const confirmationDialog = document.getElementById('confirmation-dialog');
         const confirmScrapeBtn = document.getElementById('confirm-scrape-btn');
         const cancelScrapeBtn = document.getElementById('cancel-scrape-btn');
 
         scrapeBtn.addEventListener('click', () => {
+            if (!currentProfileInfo.username || !currentProfileInfo.platform) {
+                showToast("Please search for a profile first.", "warning");
+                return;
+            }
             confirmationDialog.classList.remove('hidden');
         });
 
@@ -958,78 +911,35 @@
 
         confirmScrapeBtn.addEventListener('click', async () => {
             confirmationDialog.classList.add('hidden');
-
-            // Update button content for loading state
-            document.getElementById('scrape-button-content').innerHTML =
-                `
-                 <div class="flex items-center justify-center spinner-sm"><i class="fas fa-spinner fa-spin mr-2"></i>Scraping...</div>
-                `;
-               
-
-            // Show toast
-            showToast('Scraping in progress...', 'loading');
+            scrapeBtn.disabled = true;
+            scrapeButtonContent.innerHTML = `<div class="spinner spinner-sm mx-auto"></div> Scraping...`;
+            showToast('Scraping in progress...', 'loading', 10000000);
 
             try {
-                const response = await fetch(`http://127.0.0.1:5000/scrape`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        platform: currentPlatform,
-                        profile: currentUsername,
-                    }),
-                });
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || 'An error occurred while scraping data.');
-                    
+                // Use currentProfileInfo which should be set by updateCurrentProfile
+                if (!currentProfileInfo.username || !currentProfileInfo.platform) {
+                    throw new Error("No profile selected for scraping.");
                 }
 
-                // Get current profile data to determine platform and username
-                const currentUsername = document
-                    .querySelector('.flex-col.md\\:flex-row h3')
-                    .textContent.replace('@', '');
-                const currentPlatform = document
-                    .querySelector('.flex-col.md\\:flex-row p.text-gray-500')
-                    .textContent.replace(' Influencer', '');
+                // Call loadPerformanceData directly after confirming scrape
+                // The backend /performance_data endpoint handles both scraping and analysis
+                await loadPerformanceData(currentProfileInfo.platform, currentProfileInfo.username);
 
-                // Get currently active time filter
-                const activeTimeRange = timeFilter30d.classList.contains('bg-primary-light')
-                    ? '30d'
-                    : timeFilter90d.classList.contains('bg-primary-light')
-                    ? '90d'
-                    : '7d';
+                showNotification('Data refresh complete!', 'success');
+                // Toast is handled by loadPerformanceData
 
-                // Use our API function with time range
-                const profileData = await fetchProfileDataByTimeRange(
-                    currentPlatform,
-                    currentUsername,
-                    activeTimeRange
-                );
-
-                // Update UI with the fetched data
-                updateCurrentProfile(profileData);
-
-                // Reload performance data after scraping
-                await loadPerformanceData(currentPlatform, currentUsername);
-
-                // Success notification
-                showNotification('Data successfully updated!', 'success');
-                showToast('Data successfully updated!', 'success');
             } catch (error) {
-                console.error('Scraping error:', error);
-                showNotification(`An unexpected error occurred: ${error.message}`, 'error');
+                console.error('Scraping initiation error:', error);
+                showNotification(`Scraping failed: ${error.message}`, 'error');
+                hideToast(); // Hide loading toast on error
+                showToast(`Scraping failed: ${error.message}`, 'error');
             } finally {
-                document.getElementById('scrape-button-content').innerHTML =
-                    `
-                        <i class="fas fa-sync-alt mr-2"></i>Scrape Data
-                    `;
-                
+                scrapeButtonContent.innerHTML = `<i class="fas fa-sync-alt mr-2"></i>Scrape Data`;
                 scrapeBtn.disabled = false;
             }
         });
-        
-        /** Export button functionality */
 
+        // === Export Button Functionality ===
         const exportBtn = document.getElementById('export-btn');
         
         /**
@@ -1134,12 +1044,6 @@
         const timeFilter30d = document.getElementById('time-filter-30d');
         const timeFilter90d = document.getElementById('time-filter-90d');
         
-        // Track the current profile information for time filter changes
-        let currentProfileInfo = {
-            username: 'socialqueen',
-            platform: 'TikTok'
-        };
-        
         /**
          * Sets the active time filter button and updates its styling.
          * @param {HTMLElement} activeButton - The button to set as active.
@@ -1154,70 +1058,10 @@
             activeButton.className = 'px-3 py-1 text-xs bg-primary-light dark:bg-primary-dark text-white rounded-md';
         }
         
-        // Function to update data based on time range
-        /**
-         * Updates the displayed profile data based on the selected time range.
-         * @param {string} timeRange - The time range to fetch data for (e.g., '7d', '30d', '90d').
-         */
-        async function updateProfileDataByTimeRange(timeRange) {
-            // Show spinner in the loading toast
-            showToast(`Loading ${timeRange} data...`, 'loading');
-            
-            // Add spinner to the time filters
-            timeFilter7d.innerHTML = `<div class="spinner spinner-sm"></div>`;
-            timeFilter30d.innerHTML = `<div class="spinner spinner-sm"></div>`;
-            timeFilter90d.innerHTML = `<div class="spinner spinner-sm"></div>`;
-        
-            try {
-                showToast(`Loading ${timeRange} data...`, 'loading');
-
-                const response = await fetch(`http://127.0.0.1:5000/profile_data`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ platform: currentProfileInfo.platform, profile: currentProfileInfo.username })
-                });
-                if (!response.ok) { const errorData = await response.json(); throw new Error(errorData.error || 'An error occurred while fetching data.');}
-                
-                // Fetch data for the current profile with the selected time range
-                const profileData = await fetchProfileDataByTimeRange(
-                    currentProfileInfo.platform, 
-                    currentProfileInfo.username, 
-                    timeRange                    
-                );
-                
-                // Update UI with the new data
-                updateCurrentProfile(profileData);
-                        
-                showToast(`Updated to ${timeRange} view`, 'success');
-            } catch (error) {
-                console.error(`Error loading ${timeRange} data:`, error);
-                showNotification(`Failed to load ${timeRange} data: ${error.message}`, 'error');
-                showToast(`Failed to load ${timeRange} data: ${error.message}`, 'error');
-            } finally {
-                // Restore time filter buttons content
-                timeFilter7d.textContent = '7d';
-                timeFilter30d.textContent = '30d';
-                timeFilter90d.textContent = '90d';
-                
-            }
-        }
-        
-        timeFilter7d.addEventListener('click', () => {
-            setActiveTimeFilter(timeFilter7d);            
-            updateProfileDataByTimeRange('7d');            
-        });
-        
-        timeFilter30d.addEventListener('click', () => {
-            setActiveTimeFilter(timeFilter30d);
-            updateProfileDataByTimeRange('30d');
-        });
-
-        timeFilter90d.addEventListener('click', () => {
-            setActiveTimeFilter(timeFilter90d);
-            updateProfileDataByTimeRange('90d');
-        });
+        // Removed the data fetching logic from time filter clicks
+        timeFilter7d.addEventListener('click', () => setActiveTimeFilter(timeFilter7d));
+        timeFilter30d.addEventListener('click', () => setActiveTimeFilter(timeFilter30d));
+        timeFilter90d.addEventListener('click', () => setActiveTimeFilter(timeFilter90d));
 
         // Keyboard navigation for time filter buttons
         const timeFilterButtons = [timeFilter7d, timeFilter30d, timeFilter90d];
@@ -1434,69 +1278,82 @@
                 const data = await response.json();
                 const posts = data.performanceData;
 
-                tbody.innerHTML = '';
+                tbody.innerHTML = ''; // Clear loading row
+
+                if (!posts || posts.length === 0) {
+                    tbody.innerHTML = '<tr class="focus-within:bg-gray-50 dark:focus-within:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-dark"><td colspan="19" class="text-center py-4 text-gray-500 dark:text-gray-400">No performance data found for this profile.</td></tr>';
+                    // Update profile card with defaults or 'N/A'
+                    updateCurrentProfile({}, platform, profile); // Pass empty object
+                    hideToast(); // Hide loading toast
+                    showToast("No performance data found.", "warning");
+                    return;
+                }
+
+                // Update profile card using data from the first post
+                updateCurrentProfile(posts[0], platform, profile);
 
                 let isEven = false;
-                if (!posts || posts.length === 0) {
-                    tbody.innerHTML = '<tr class="focus-within:bg-gray-50 dark:focus-within:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-dark"><td colspan="23" class="text-center py-4 text-gray-500 dark:text-gray-400">No performance data found for this profile.</td></tr>';
-                    return;                    
-                }
-                
-                let row;
                 posts.forEach(post => {
-                    row.classList.add('hover:bg-gray-50', 'dark:hover:bg-gray-700'); // Add hover effect
-                    row = document.createElement('tr');
-                    // Format timestamp if needed (assuming it's a Unix timestamp or ISO string)
+                    const row = document.createElement('tr'); // Create row first
+                    row.classList.add('hover:bg-gray-50', 'dark:hover:bg-gray-700'); // Add hover effect once
+                    if (isEven) {
+                        row.classList.add('bg-gray-50', 'dark:bg-gray-700'); // Alternate row color
+                    }
+
                     let formattedTimestamp = post.timestamp;
                     if (formattedTimestamp) {
                         try {
-                            let date;
-                            if (typeof formattedTimestamp === 'number') {
-                                // Assume Unix timestamp in seconds
-                                date = new Date(formattedTimestamp * 1000);
+                            const date = new Date(formattedTimestamp); // Assumes ISO string from backend
+                            if (!isNaN(date)) { // Check if date is valid
+                                formattedTimestamp = date.toLocaleDateString();
                             } else {
-                                // Assume ISO 8601 string
-                                date = new Date(formattedTimestamp);
+                                formattedTimestamp = post.timestamp; // Fallback to original string if invalid
                             }
-                            formattedTimestamp = date.toLocaleDateString();
                         } catch (e) {
-                            console.warn("Could not format timestamp:", post.timestamp);
+                            console.warn("Could not format timestamp:", post.timestamp, e);
+                            formattedTimestamp = post.timestamp; // Fallback
                         }
                     }
+
+                    // Populate row cells (ensure all keys exist or use || 'N/A')
                     row.innerHTML = `
-                    
                         <td class="px-3 py-2 whitespace-nowrap"><a href="${post.accountUrl || '#'}" target="_blank" class="text-primary-light dark:text-primary-dark hover:underline focus:outline-none focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-dark">${post.accountUrl ? post.accountUrl.split('/').pop() : 'N/A'}</a></td>
-                        <td class="px-3 py-2 max-w-xs truncate"><a href="${post.postUrl || '#'}" target="_blank" class="text-primary-light dark:text-primary-dark hover:underline">${post.postUrl || 'N/A'}</a></td>
+                        <td class="px-3 py-2 max-w-xs truncate"><a href="${post.postUrl || '#'}" target="_blank" class="text-primary-light dark:text-primary-dark hover:underline" title="${post.postUrl || ''}">${post.postUrl || 'N/A'}</a></td>
                         <td class="px-3 py-2 whitespace-nowrap">${formattedTimestamp || 'N/A'}</td>
                         <td class="px-3 py-2 text-right">${post.captionLength || 0}</td>
-                        <td class="px-3 py-2 text-right">${formatNumber(post.followers) || 0}</td>
-                        <td class="px-3 py-2 text-right">${formatNumber(post.views) || 0}</td>
-                        <td class="px-3 py-2 text-right">${formatNumber(post.likes) || 0}</td>
-                        <td class="px-3 py-2 text-right">${formatNumber(post.comments) || 0}</td>
+                        <td class="px-3 py-2 text-right">${formatNumber(post.followers || 0)}</td>
+                        <td class="px-3 py-2 text-right">${formatNumber(post.views || 0)}</td>
+                        <td class="px-3 py-2 text-right">${formatNumber(post.likes || 0)}</td>
+                        <td class="px-3 py-2 text-right">${formatNumber(post.comments || 0)}</td>
                         <td class="px-3 py-2 text-right">${post.erFollowers !== undefined ? post.erFollowers.toFixed(2) + '%' : 'N/A'}</td>
                         <td class="px-3 py-2 text-right">${post.erLikesComments !== undefined ? post.erLikesComments.toFixed(2) + '%' : 'N/A'}</td>
-                        <td class="px-3 py-2 text-right">${formatNumber(post.shares) || 0}</td>                    
+                        <td class="px-3 py-2 text-right">${formatNumber(post.shares || 0)}</td>
                         <td class="px-3 py-2 text-right">${post.erShares !== undefined ? post.erShares.toFixed(2) + '%' : 'N/A'}</td>
                         <td class="px-3 py-2 text-right">${post.duration || 0}</td>
-                        <td class="px-3 py-2 text-right">${post.viralityScore !== undefined ? post.viralityScore.toFixed(4) : 'N/A'}</td>                    
+                        <td class="px-3 py-2 text-right">${post.viralityScore !== undefined ? post.viralityScore.toFixed(4) : 'N/A'}</td>
                         <td class="px-3 py-2"><span class="px-2 py-1 text-xs rounded-full ${getRatingClass(post.erRating)}">${post.erRating || 'N/A'}</span></td>
                         <td class="px-3 py-2">${post.category || 'N/A'}</td>
                         <td class="px-3 py-2">${post.theme || 'N/A'}</td>
-                        <td class="px-3 py-2 max-w-xs truncate" title="${post.hook || ''}">${post.hook || 'N/A'}</td>                    
+                        <td class="px-3 py-2 max-w-xs truncate" title="${post.hook || ''}">${post.hook || 'N/A'}</td>
                         <td class="px-3 py-2 max-w-xs truncate" title="${post.caption || ''}">${post.caption || 'N/A'}</td>
                     `;
-                    if (isEven) {
-                        row.classList.add('bg-gray-50', 'dark:bg-gray-700');
-                    }
-                    row.classList.add('hover:bg-gray-50', 'dark:hover:bg-gray-700');
-                    isEven = !isEven;
 
                     tbody.appendChild(row);
+                    isEven = !isEven; // Toggle for next row
                 });
+
+                hideToast(); // Hide loading toast
+                showToast("Performance data loaded successfully!", "success");
+
             } catch (error) {
                 console.error("Error loading performance data:", error);
                 tbody.innerHTML = `<tr><td colspan="19" class="text-center py-4 text-red-500">Error loading data: ${error.message}</td></tr>`;
+                // Update profile card with defaults or 'N/A' on error
+                updateCurrentProfile({}, platform, profile); // Pass empty object
+                hideToast(); // Hide loading toast
                 showToast(`Error loading performance data: ${error.message}`, 'error');
+                // Re-throw error so search/scrape handlers know it failed
+                throw error;
             }
         }
 

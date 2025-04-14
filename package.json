@@ -1,14 +1,18 @@
 {
-  "name": "parsifly",
+  "name": "parsifly-frontend",
   "version": "1.0.0",
   "description": "--- title: Parsifly - Social Media Analytics Dashboard emoji: 📊 colorFrom: indigo colorTo: pink sdk: static pinned: false ---",
-  "main": "api.js",
+  "main": "index.html",
   "scripts": {
+    "start": "serve -s .",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "dependencies": {
+    "serve": "^14.2.3"
+  },
   "devDependencies": {
     "@eslint/create-config": "^1.8.0",
     "eslint": "^9.24.0"
