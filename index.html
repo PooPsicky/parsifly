@@ -1263,16 +1263,19 @@
             showToast(`Loading ${platform} data for ${profile}...`, 'loading', 10000000);
 
             try {
-                // !!! IMPORTANT: Replace 'YOUR_BACKEND_API_URL' with the actual public URL of your deployed backend service !!!
-                // Example: const backendUrl = 'https://your-backend-service-production.up.railway.app';
-                const backendUrl = 'YOUR_BACKEND_API_URL'; // <-- UPDATE THIS
-                // const backendUrl = 'http://127.0.0.1:5000'; // Keep this commented out or remove for deployment
+                // !!! THIS IS THE CRITICAL PART !!!
+                // Updated with the provided Railway URL. Ensure this is the URL for your BACKEND service.
+                const backendUrl = 'https://parsifly-production.up.railway.app'; // <-- UPDATED THIS LINE
 
+                // This line checks if you forgot to update the URL (less likely now).
                 if (!backendUrl || backendUrl === 'YOUR_BACKEND_API_URL') {
-                    throw new Error("Backend API URL is not configured.");
+                    throw new Error("Backend API URL is not configured in index.html."); 
                 }
 
-                const response = await fetch(`${backendUrl}/api/performance_data`, { // Ensure the endpoint path is correct (/api/performance_data)
+                // This line makes the actual request to your backend.
+                // It combines the backendUrl with the specific API path '/api/performance_data'.
+                // Make sure '/api/performance_data' matches the route in your Flask app.
+                const response = await fetch(`${backendUrl}/api/performance_data`, { 
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
