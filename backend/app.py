@@ -7,9 +7,14 @@ import openai
 import json
 from datetime import datetime
 import requests
+import logging # Import logging
 
 app = Flask(__name__)
 load_dotenv()
+
+# --- Setup Logging ---
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+# --- End Setup Logging ---
 
 # API Keys
 APIFY_API_KEY = os.getenv('APIFY_API_KEY')
@@ -24,6 +29,7 @@ else:
 # Test endpoint
 @app.route('/', methods=['GET'])
 def hello_world():
+    logging.info("Root endpoint '/' accessed.") # Add logging
     return jsonify({'message': 'Hello, Parsifly Backend is running!'})
 
 @app.route('/scrape', methods=['POST'])
@@ -298,36 +304,67 @@ def analyze_posts():
 
 @app.route('/performance_data', methods=['POST'])
 def get_performance_data():
+    logging.info("'/performance_data' endpoint called.") # Log entry
     data = request.get_json()
     platform = data.get('platform')
     profile = data.get('profile')
+    logging.info(f"Received request for platform: {platform}, profile: {profile}")
 
     if not platform or not profile:
+        logging.warning("Missing platform or profile in request.") # Log warning
         return jsonify({'error': 'Platform and profile are required'}), 400
 
     try:
-        scrape_response = requests.post(url=request.url_root + 'scrape', json={'platform': platform, 'profile': profile})
+        scrape_url = request.url_root + 'scrape'
+        logging.info(f"Making internal request to {scrape_url}")
+        scrape_response = requests.post(url=scrape_url, json={'platform': platform, 'profile': profile}, timeout=60) # Add timeout
+        logging.info(f"Internal scrape request status: {scrape_response.status_code}")
         scrape_response.raise_for_status()
         scraped_data = scrape_response.json()
         posts = scraped_data.get('posts')
+        logging.info(f"Scrape successful, received {len(posts) if posts else 0} posts.")
 
         if not posts:
+            logging.warning("No posts found after scraping.") # Log warning
             return jsonify({'error': 'No posts found'}), 404
 
-        analyze_response = requests.post(url=request.url_root + 'analyze', json={'posts': posts})
+        analyze_url = request.url_root + 'analyze'
+        logging.info(f"Making internal request to {analyze_url}")
+        analyze_response = requests.post(url=analyze_url, json={'posts': posts}, timeout=120) # Add timeout
+        logging.info(f"Internal analyze request status: {analyze_response.status_code}")
         analyze_response.raise_for_status()
         analyzed_data = analyze_response.json()
         analyzed_posts = analyzed_data.get('analyzedPosts')
+        logging.info(f"Analysis successful, received {len(analyzed_posts) if analyzed_posts else 0} analyzed posts.")
+
 
         if not analyzed_posts:
+             logging.warning("No posts analyzed.") # Log warning
              return jsonify({'error': 'No posts analyzed'}), 404
 
+        logging.info("Returning successful performance data.") # Log success
         return jsonify({'performanceData': analyzed_posts})
 
+    except requests.exceptions.Timeout:
+        logging.error("Internal request timed out.", exc_info=True)
+        return jsonify({'error': 'Internal request timed out'}), 500
     except requests.exceptions.RequestException as e:
-        return jsonify({'error': f'Request failed: {str(e)}'}), 500
+        logging.error(f"Internal request failed: {e}", exc_info=True) # Log request exception
+        # Log response body if available and not JSON
+        response_text = ""
+        if e.response is not None:
+            try:
+                e.response.json() # Try to parse as JSON
+            except json.JSONDecodeError:
+                 response_text = e.response.text[:500] # Get first 500 chars if not JSON
+                 logging.error(f"Internal request response body (non-JSON): {response_text}")
+
+        return jsonify({'error': f'Internal request failed: {str(e)} {response_text}'}), 500
     except Exception as e:
+        logging.error(f"An unexpected error occurred in /performance_data: {e}", exc_info=True) # Log general exception
         return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    # Use Gunicorn or another WSGI server in production instead of app.run(debug=True)
+    # For local testing:
+    app.run(host='0.0.0.0', port=8080, debug=True) # Match Procfile port if running locally like Railway
