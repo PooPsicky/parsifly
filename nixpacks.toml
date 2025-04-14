@@ -12,5 +12,5 @@ cmds = ["python -m venv /opt/venv", ". /opt/venv/bin/activate", "pip install --n
 
 [start]
 # Command to run the Flask application using Gunicorn
-# Use the full path to gunicorn within the virtual environment
-cmd = "/opt/venv/bin/gunicorn --bind 0.0.0.0:$PORT backend.app:app"
+# Explicitly add the venv bin directory to the PATH before running gunicorn
+cmd = "export PATH=/opt/venv/bin:$PATH && gunicorn --bind 0.0.0.0:$PORT backend.app:app"
