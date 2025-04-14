@@ -1,0 +1,17 @@
+# Tell Nixpacks to use Python
+providers = ["python"]
+
+[phases.setup]
+# Use Python 3.11 (or your preferred version)
+# Make sure nixPkgs includes python311 and potentially pip if needed explicitly
+nixPkgs = ["python311", "python311Packages.pip"]
+
+[phases.install]
+# Install Python dependencies from the backend directory
+cmds = ["python -m venv /opt/venv", ". /opt/venv/bin/activate", "pip install --no-cache-dir -r backend/requirements.txt"]
+
+[start]
+# Command to run the Flask application using Gunicorn
+# It activates the virtual environment first
+# $PORT is automatically provided by Railway
+cmd = ". /opt/venv/bin/activate && gunicorn --bind 0.0.0.0:$PORT backend.app:app"
