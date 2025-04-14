@@ -474,12 +474,15 @@
         const savedTheme = localStorage.getItem('theme') || 
                           (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
         
+        // Declare html variable *before* using it
+        const html = document.documentElement; 
+
         // Apply the saved theme
-        html.classList.add(savedTheme);
+        html.classList.add(savedTheme); // Now 'html' is defined
         
         const themeToggle = document.getElementById('theme-toggle');
-        const html = document.documentElement;
-        
+        // const html = document.documentElement; // Moved declaration up
+
         themeToggle.addEventListener('click', () => {
             toggleTheme();
             
