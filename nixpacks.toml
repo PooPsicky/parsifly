@@ -8,7 +8,11 @@ nixPkgs = ["python311", "python311Packages.pip"]
 
 [phases.install]
 # Install Python dependencies from the backend directory
-cmds = ["python -m venv /opt/venv", ". /opt/venv/bin/activate", "pip install --no-cache-dir -r backend/requirements.txt"]
+# Create venv, then use the venv's python to run pip install
+cmds = [
+    "python -m venv /opt/venv",
+    "/opt/venv/bin/python -m pip install --no-cache-dir -r backend/requirements.txt"
+]
 
 [start]
 # Command to run the Flask application using Gunicorn
