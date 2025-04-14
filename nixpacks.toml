@@ -12,6 +12,5 @@ cmds = ["python -m venv /opt/venv", ". /opt/venv/bin/activate", "pip install --n
 
 [start]
 # Command to run the Flask application using Gunicorn
-# It activates the virtual environment first
-# $PORT is automatically provided by Railway
-cmd = ". /opt/venv/bin/activate && gunicorn --bind 0.0.0.0:$PORT backend.app:app"
+# Use the full path to gunicorn within the virtual environment
+cmd = "/opt/venv/bin/gunicorn --bind 0.0.0.0:$PORT backend.app:app"
