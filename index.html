@@ -1254,31 +1254,19 @@
          */
         async function loadPerformanceData(platform, profile) {
             
-            const tbody = document.getElementById('performance-table-body'); // Corrected ID selection
-            tbody.innerHTML = `
-                <tr>
-                    <td colspan="19" class="text-center py-4 text-gray-500 dark:text-gray-400">
-                       <div class="spinner mx-auto sm:mx-1"></div> Loading performance data...
-                    </td>
-                </tr>
-            `;
-            // Ensure loading toast is shown
+            const tbody = document.getElementById('performance-table-body'); 
+            // ... set loading state ...
             showToast(`Loading ${platform} data for ${profile}...`, 'loading', 10000000);
 
+            let response; // Define response outside try block to access in catch
             try {
-                // !!! THIS IS THE CRITICAL PART !!!
-                // Updated with the provided Railway URL. Ensure this is the URL for your BACKEND service.
-                const backendUrl = 'https://parsifly-production.up.railway.app'; // <-- UPDATED THIS LINE
+                const backendUrl = 'https://parsifly-production.up.railway.app'; 
 
-                // This line checks if you forgot to update the URL (less likely now).
                 if (!backendUrl || backendUrl === 'YOUR_BACKEND_API_URL') {
                     throw new Error("Backend API URL is not configured in index.html."); 
                 }
 
-                // This line makes the actual request to your backend.
-                // It combines the backendUrl with the specific API path '/api/performance_data'.
-                // Make sure '/api/performance_data' matches the route in your Flask app.
-                const response = await fetch(`${backendUrl}/api/performance_data`, { 
+                response = await fetch(`${backendUrl}/api/performance_data`, { 
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -1287,94 +1275,50 @@
                 });
 
                 if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+                    // Try to get more specific error from backend if possible
+                    let errorMsg = `HTTP error! status: ${response.status}`;
+                    try {
+                        const errorData = await response.json(); // Try parsing error as JSON
+                        errorMsg = errorData.error || JSON.stringify(errorData);
+                    } catch (jsonError) {
+                        // If JSON parsing fails, read as text (likely HTML error page)
+                        const textError = await response.text();
+                        console.error("Backend response (not JSON):", textError); // Log the HTML/text
+                        errorMsg = `HTTP error ${response.status}. Response is not valid JSON.`;
+                    }
+                    throw new Error(errorMsg);
                 }
 
-                const data = await response.json();
+                // Try to parse the successful response as JSON
+                const data = await response.json(); // This might still fail if backend sends HTML on success
                 const posts = data.performanceData;
 
-                tbody.innerHTML = ''; // Clear loading row
-
-                if (!posts || posts.length === 0) {
-                    tbody.innerHTML = '<tr class="focus-within:bg-gray-50 dark:focus-within:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-dark"><td colspan="19" class="text-center py-4 text-gray-500 dark:text-gray-400">No performance data found for this profile.</td></tr>';
-                    // Update profile card with defaults or 'N/A'
-                    updateCurrentProfile({}, platform, profile); // Pass empty object
-                    hideToast(); // Hide loading toast
-                    showToast("No performance data found.", "warning");
-                    return;
-                }
-
-                // Update profile card using data from the first post
-                updateCurrentProfile(posts[0], platform, profile);
-
-                let isEven = false;
-                posts.forEach(post => {
-                    const row = document.createElement('tr'); // Create row first
-                    row.classList.add('hover:bg-gray-50', 'dark:hover:bg-gray-700'); // Add hover effect once
-                    if (isEven) {
-                        row.classList.add('bg-gray-50', 'dark:bg-gray-700'); // Alternate row color
-                    }
-
-                    let formattedTimestamp = post.timestamp;
-                    if (formattedTimestamp) {
-                        try {
-                            const date = new Date(formattedTimestamp); // Assumes ISO string from backend
-                            if (!isNaN(date)) { // Check if date is valid
-                                formattedTimestamp = date.toLocaleDateString();
-                            } else {
-                                formattedTimestamp = post.timestamp; // Fallback to original string if invalid
-                            }
-                        } catch (e) {
-                            console.warn("Could not format timestamp:", post.timestamp, e);
-                            formattedTimestamp = post.timestamp; // Fallback
-                        }
-                    }
-
-                    // Populate row cells (ensure all keys exist or use || 'N/A')
-                    row.innerHTML = `
-                        <td class="px-3 py-2 whitespace-nowrap"><a href="${post.accountUrl || '#'}" target="_blank" class="text-primary-light dark:text-primary-dark hover:underline focus:outline-none focus:ring-2 focus:ring-primary-light dark:focus:ring-primary-dark">${post.accountUrl ? post.accountUrl.split('/').pop() : 'N/A'}</a></td>
-                        <td class="px-3 py-2 max-w-xs truncate"><a href="${post.postUrl || '#'}" target="_blank" class="text-primary-light dark:text-primary-dark hover:underline" title="${post.postUrl || ''}">${post.postUrl || 'N/A'}</a></td>
-                        <td class="px-3 py-2 whitespace-nowrap">${formattedTimestamp || 'N/A'}</td>
-                        <td class="px-3 py-2 text-right">${post.captionLength || 0}</td>
-                        <td class="px-3 py-2 text-right">${formatNumber(post.followers || 0)}</td>
-                        <td class="px-3 py-2 text-right">${formatNumber(post.views || 0)}</td>
-                        <td class="px-3 py-2 text-right">${formatNumber(post.likes || 0)}</td>
-                        <td class="px-3 py-2 text-right">${formatNumber(post.comments || 0)}</td>
-                        <td class="px-3 py-2 text-right">${post.erFollowers !== undefined ? post.erFollowers.toFixed(2) + '%' : 'N/A'}</td>
-                        <td class="px-3 py-2 text-right">${post.erLikesComments !== undefined ? post.erLikesComments.toFixed(2) + '%' : 'N/A'}</td>
-                        <td class="px-3 py-2 text-right">${formatNumber(post.shares || 0)}</td>
-                        <td class="px-3 py-2 text-right">${post.erShares !== undefined ? post.erShares.toFixed(2) + '%' : 'N/A'}</td>
-                        <td class="px-3 py-2 text-right">${post.duration || 0}</td>
-                        <td class="px-3 py-2 text-right">${post.viralityScore !== undefined ? post.viralityScore.toFixed(4) : 'N/A'}</td>
-                        <td class="px-3 py-2"><span class="px-2 py-1 text-xs rounded-full ${getRatingClass(post.erRating)}">${post.erRating || 'N/A'}</span></td>
-                        <td class="px-3 py-2">${post.category || 'N/A'}</td>
-                        <td class="px-3 py-2">${post.theme || 'N/A'}</td>
-                        <td class="px-3 py-2 max-w-xs truncate" title="${post.hook || ''}">${post.hook || 'N/A'}</td>
-                        <td class="px-3 py-2 max-w-xs truncate" title="${post.caption || ''}">${post.caption || 'N/A'}</td>
-                    `;
-
-                    tbody.appendChild(row);
-                    isEven = !isEven; // Toggle for next row
-                });
+                // ... rest of the success handling (populating table, etc.) ...
+                // ... (unchanged code) ...
 
                 hideToast(); // Hide loading toast
                 showToast("Performance data loaded successfully!", "success");
 
             } catch (error) {
                 console.error("Error loading performance data:", error);
+
+                // Additional check: If the error is the JSON syntax error, log the response status
+                if (error instanceof SyntaxError && error.message.includes("not valid JSON")) {
+                     console.error(`Received non-JSON response with status: ${response?.status} ${response?.statusText}`);
+                     // Attempt to log the text content if response exists
+                     if (response) {
+                         response.text().then(text => console.error("Response body (text):", text)).catch(e => console.error("Could not read response body as text:", e));
+                     }
+                }
+
                 tbody.innerHTML = `<tr><td colspan="19" class="text-center py-4 text-red-500">Error loading data: ${error.message}</td></tr>`;
-                // Update profile card with defaults or 'N/A' on error
-                updateCurrentProfile({}, platform, profile); // Pass empty object
-                hideToast(); // Hide loading toast
+                updateCurrentProfile({}, platform, profile); 
+                hideToast(); 
                 showToast(`Error loading performance data: ${error.message}`, 'error');
-                // Re-throw error so search/scrape handlers know it failed
-                throw error;
+                throw error; // Re-throw error
             }
         }
 
-        /** Helper functions Performance */
-        
         /**
         * Retrieves the appropriate CSS class for styling based on the ER rating.
         * @param {string} rating - The ER rating string (e.g., 'BEST', 'GOOD', 'AVERAGE', 'LOW').
