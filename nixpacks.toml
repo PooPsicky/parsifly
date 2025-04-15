@@ -2,19 +2,19 @@
 providers = ["python"]
 
 [phases.setup]
-# Use Python 3.11 and install pip via Nix
-# Remove gunicorn from here, it will be installed via pip into the venv
-nixPkgs = ["python311", "python311Packages.pip"]
-
-[phases.install]
-# Create venv, then use the venv's python/pip to install requirements
-cmds = [
-    "python -m venv /opt/venv",
-    "/opt/venv/bin/python -m pip install --upgrade pip", # Ensure pip is up-to-date within venv
-    "/opt/venv/bin/python -m pip install --no-cache-dir -r backend/requirements.txt"
+# Use Python 3.11 and install ALL dependencies globally via Nix
+nixPkgs = [
+    "python311",
+    "python311Packages.pip", # Keep pip just in case, but primarily rely on Nix packages below
+    "python311Packages.flask",
+    "python311Packages.python-dotenv",
+    "python311Packages.requests",
+    "python311Packages.apify-client",
+    "python311Packages.openai",
+    "python311Packages.gunicorn"
 ]
 
 [start]
 # Command to run the Flask application using Gunicorn
-# Use the venv's python to run gunicorn as a module
-cmd = "/opt/venv/bin/python -m gunicorn --bind 0.0.0.0:$PORT backend.app:app"
+# Call gunicorn directly, as it should be globally available from Nix setup
+cmd = "gunicorn --bind 0.0.0.0:$PORT backend.app:app"
